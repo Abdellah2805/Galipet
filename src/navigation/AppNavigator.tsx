@@ -1,9 +1,13 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, Image, Pressable, FlatList, TextInput, TouchableOpacity } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, StyleSheet, ScrollView, Image, Pressable, FlatList, TextInput, TouchableOpacity, Modal, ActivityIndicator, Alert } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { getSupabase } from '../lib/supabase';
 import { colors, radius, spacing } from '../theme/colors';
 import ProfileScreen from '../screens/ProfileScreen';
+import PetProfileScreen from '../screens/PetProfileScreen';
+import * as ImagePicker from 'expo-image-picker';
+import DateTimePicker from '@react-native-community/datetimepicker';
+import { Picker } from '@react-native-picker/picker';
 
 const SERVICE_CATEGORIES = [
   { id: '1', title: 'Santé', subtitle: 'Vétérinaires & urgences', icon: 'medical', color: '#D4663A', bg: '#F5E6E0', route: '/services/sante' },
@@ -109,8 +113,178 @@ const ServiceCard = ({ item, onPress }: { item: typeof SERVICE_CATEGORIES[0]; on
 
 export default function AppNavigator() {
   const [viewMode, setViewMode] = useState('grid');
-  const [currentTab, setCurrentTab] = useState('explore' as 'explore' | 'animals' | 'messages' | 'profile');
-  const supabase = getSupabase();
+  const [currentTab, setCurrentTab] = useState('explore' as 'explore' | 'animals' | 'messages' | 'profile' | 'petProfile');
+  const [isAddAnimalModalVisible, setAddAnimalModalVisible] = useState(false);
+const [selectedSpecies, setSelectedSpecies] = useState<string | null>(null);
+const [formStep, setFormStep] = useState(1);
+const [currentAnimal, setCurrentAnimal] = useState<any>(null);
+const [animalPhoto, setAnimalPhoto] = useState<string | null>(null);
+const [animalNom, setAnimalNom] = useState('');
+const [animalRace, setAnimalRace] = useState('');
+const [animalDateNaissance, setAnimalDateNaissance] = useState<Date | null>(null);
+const [showDatePicker, setShowDatePicker] = useState(false);
+const [animalSexe, setAnimalSexe] = useState('');
+const [animalTaille, setAnimalTaille] = useState('');
+const [animalTypePoil, setAnimalTypePoil] = useState('');
+const [animalDescription, setAnimalDescription] = useState('');
+const [animalPoids, setAnimalPoids] = useState('');
+const [animalAllergies, setAnimalAllergies] = useState('');
+const [animalVaccinations, setAnimalVaccinations] = useState('');
+const [selectedPersonalityTags, setSelectedPersonalityTags] = useState<string[]>([]);
+const [userPets, setUserPets] = useState<any[]>([]);
+const [isLoadingPets, setIsLoadingPets] = useState(false);
+const supabase = getSupabase();
+
+const personalityTags = ['Joueur', 'Calme', 'Affectueux', 'Énergique', 'Câlin', 'Indépendant', 'Sociable', 'Curieux', 'Gourmand', 'Protecteur'];
+
+const resetAnimalForm = () => {
+  setFormStep(1);
+  setSelectedSpecies(null);
+  setAnimalPhoto(null);
+  setAnimalNom('');
+  setAnimalRace('');
+  setAnimalDateNaissance(null);
+  setShowDatePicker(false);
+  setAnimalSexe('');
+  setAnimalTaille('');
+  setAnimalTypePoil('');
+  setAnimalDescription('');
+  setAnimalPoids('');
+  setAnimalAllergies('');
+  setAnimalVaccinations('');
+  setSelectedPersonalityTags([]);
+};
+
+const pickImage = async () => {
+  const result = await ImagePicker.launchImageLibraryAsync({
+    mediaTypes: ImagePicker.MediaTypeOptions.Images,
+    allowsEditing: true,
+    aspect: [1, 1],
+    quality: 1,
+  });
+
+   if (!result.canceled) {
+    setAnimalPhoto(result.assets[0].uri);
+  }
+};
+
+useEffect(() => {
+  if (currentTab === 'animals') {
+    fetchUserPets();
+  }
+}, [currentTab]);
+
+const fetchUserPets = async () => {
+  try {
+    setIsLoadingPets(true);
+    const { data: { user }, error: userError } = await supabase.auth.getUser();
+    if (userError || !user) {
+      console.error('User not logged in', userError);
+      return;
+    }
+    const { data: pets, error: petsError } = await supabase
+      .from('pets')
+      .select('*')
+      .eq('owner_id', user.id);
+    if (petsError) {
+      console.error('Error fetching pets', petsError);
+    } else {
+      setUserPets(pets || []);
+    }
+  } catch (error) {
+    console.error('Error fetching pets', error);
+  } finally {
+    setIsLoadingPets(false);
+  }
+};
+
+const handleCreatePet = async () => {
+  try {
+    setIsLoadingPets(true);
+    const { data: { user }, error: userError } = await supabase.auth.getUser();
+    if (userError || !user) {
+      Alert.alert('Erreur', 'Vous devez être connecté pour ajouter un animal');
+      return;
+    }
+
+    if (!animalNom || !selectedSpecies) {
+      Alert.alert('Erreur', 'Veuillez remplir au moins le nom et l\'espèce');
+      return;
+    }
+
+    let profileImageUrl = null;
+    // Temporairement désactivé pour tester sans upload
+    /*
+    if (animalPhoto) {
+      const fileName = `${user.id}_${Date.now()}.jpg`;
+      const response = await fetch(animalPhoto);
+      const blob = await response.blob();
+      const { data: uploadData, error: uploadError } = await supabase.storage
+        .from('pet-photos')
+        .upload(fileName, blob, {
+          contentType: 'image/jpeg',
+          upsert: false,
+        });
+      if (uploadError) {
+        console.error('Upload error', uploadError);
+        Alert.alert('Erreur', 'Erreur lors de l\'upload de l\'image');
+        return;
+      } else {
+        const { data: { publicUrl } } = supabase.storage
+          .from('pet-photos')
+          .getPublicUrl(fileName);
+        profileImageUrl = publicUrl;
+      }
+    }
+    */
+
+    const allergies = animalAllergies ? animalAllergies.split(',').map(s => s.trim()).filter(s => s.length > 0) : [];
+    const vaccinations = animalVaccinations ? animalVaccinations.split(',').map(s => s.trim()).filter(s => s.length > 0) : [];
+    const personalityTraits = selectedPersonalityTags;
+
+    const { data: petData, error: insertError } = await supabase
+      .from('pets')
+      .insert([
+        {
+          owner_id: user.id,
+          name: animalNom,
+          species: selectedSpecies,
+          breed: animalRace || null,
+          birth_date: animalDateNaissance ? animalDateNaissance.toISOString().split('T')[0] : null,
+          gender: animalSexe || null,
+          size: animalTaille || null,
+          coat_type: animalTypePoil || null,
+          description: animalDescription || null,
+          weight_kg: animalPoids ? parseFloat(animalPoids) : null,
+          profile_image_url: profileImageUrl,
+          allergies: allergies,
+          vaccinations: vaccinations,
+          personality_traits: personalityTraits,
+        },
+      ])
+      .select()
+      .single();
+
+    if (insertError) {
+      console.error('Insert error', insertError);
+      Alert.alert('Erreur', 'Erreur lors de l\'enregistrement de l\'animal');
+      return;
+    }
+
+    Alert.alert('Succès', 'Animal ajouté avec succès !');
+
+    setCurrentAnimal(petData);
+    resetAnimalForm();
+    setAddAnimalModalVisible(false);
+    await fetchUserPets();
+    setCurrentTab('petProfile');
+  } catch (error) {
+    console.error('Error creating pet', error);
+    Alert.alert('Erreur', 'Une erreur est survenue');
+  } finally {
+    setIsLoadingPets(false);
+  }
+};
 
   const handleServicePress = (route: string) => {
     console.log('Navigate to:', route);
@@ -180,12 +354,371 @@ export default function AppNavigator() {
             </TouchableOpacity>
           </View>
         </View>
-        <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
-          <Ionicons name="paw" size={48} color="#6B6660" />
-          <Text style={{ fontSize: 18, fontWeight: '600', color: '#2E2A26', marginTop: 12 }}>Mes Animaux</Text>
-          <Text style={{ fontSize: 14, color: '#6B6660', marginTop: 8 }}>Ajoutez votre premier animal</Text>
+        <View style={{ padding: 16, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+          <Text style={{ fontSize: 20, fontWeight: '700', color: '#2E2A26' }}>Mes Animaux</Text>
+          <TouchableOpacity
+            onPress={() => setAddAnimalModalVisible(true)}
+            style={{ backgroundColor: '#FF5722', paddingHorizontal: 16, paddingVertical: 8, borderRadius: 20 }}
+            activeOpacity={0.8}
+          >
+            <Text style={{ color: '#FFF', fontWeight: '600' }}>+ Ajouter</Text>
+          </TouchableOpacity>
+        </View>
+        <View style={{ flex: 1, position: 'relative' }}>
+          {isLoadingPets && (
+            <View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(255, 248, 241, 0.7)', zIndex: 10 }}>
+              <ActivityIndicator size="large" color="#FF5722" />
+            </View>
+          )}
+          {userPets.length === 0 ? (
+            <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: 20 }}>
+              <View style={{ width: 100, height: 100, borderRadius: 50, backgroundColor: '#FFF5F0', alignItems: 'center', justifyContent: 'center' }}>
+                <Ionicons name="paw" size={50} color="#FF5722" />
+              </View>
+              <Text style={{ fontSize: 20, fontWeight: '700', color: '#2E2A26', marginTop: 20 }}>Aucun animal enregistré</Text>
+              <Text style={{ fontSize: 14, color: '#6B6660', marginTop: 8, textAlign: 'center' }}>Ajoutez votre premier compagnon pour profiter de tous nos services</Text>
+              <TouchableOpacity
+                style={{ marginTop: 24, backgroundColor: '#FF5722', paddingHorizontal: 32, paddingVertical: 14, borderRadius: 25, flexDirection: 'row', alignItems: 'center', gap: 8 }}
+                onPress={() => setAddAnimalModalVisible(true)}
+                activeOpacity={0.8}
+              >
+                <Ionicons name="add" size={22} color="#FFF" />
+                <Text style={{ color: '#FFF', fontSize: 16, fontWeight: '600' }}>+ Ajouter un animal</Text>
+              </TouchableOpacity>
+            </View>
+          ) : (
+            <FlatList
+              data={userPets}
+              keyExtractor={(item) => item.id}
+              contentContainerStyle={{ padding: 16 }}
+              renderItem={({ item }) => (
+                <TouchableOpacity
+                  onPress={() => {
+                    setCurrentAnimal(item);
+                    setCurrentTab('petProfile');
+                  }}
+                  style={{ flexDirection: 'row', alignItems: 'center', padding: 16, backgroundColor: '#FFF', borderRadius: 12, marginBottom: 12, borderWidth: 1, borderColor: '#EADBC8' }}
+                >
+                  <View style={{ width: 60, height: 60, borderRadius: 30, backgroundColor: '#FFF8F1', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', borderWidth: 1, borderColor: '#EADBC8' }}>
+                    {item.profile_image_url ? (
+                      <Image source={{ uri: item.profile_image_url }} style={{ width: '100%', height: '100%' }} resizeMode="cover" />
+                    ) : (
+                      <Ionicons name="paw" size={24} color="#FF5722" />
+                    )}
+                  </View>
+                  <View style={{ marginLeft: 12, flex: 1 }}>
+                    <Text style={{ fontSize: 16, fontWeight: '600', color: '#2E2A26' }}>{item.name}</Text>
+                    <Text style={{ fontSize: 14, color: '#6B6660' }}>{item.species === 'chien' ? 'Chien' : 'Chat'}</Text>
+                    {item.breed && <Text style={{ fontSize: 12, color: '#6B6660' }}>{item.breed}</Text>}
+                  </View>
+                  <Ionicons name="chevron-forward" size={20} color="#6B6660" />
+                </TouchableOpacity>
+              )}
+            />
+          )}
         </View>
         <TabBar currentTab={currentTab} setCurrentTab={setCurrentTab} />
+
+        <Modal
+          visible={isAddAnimalModalVisible}
+          animationType="slide"
+          onRequestClose={() => { resetAnimalForm(); setAddAnimalModalVisible(false); }}
+        >
+          {formStep === 1 ? (
+            <View style={{ flex: 1, backgroundColor: '#FFF8F1' }}>
+              <View style={{ backgroundColor: '#FF5722', height: '33%', alignItems: 'center', justifyContent: 'center', paddingHorizontal: 20 }}>
+                <View style={{ width: 80, height: 80, borderRadius: 40, backgroundColor: '#FFF', alignItems: 'center', justifyContent: 'center' }}>
+                  <Ionicons name="paw" size={40} color="#FF5722" />
+                </View>
+                <Text style={{ fontSize: 24, fontWeight: 'bold', color: '#FFF', marginTop: 12 }}>Anim'All</Text>
+                <Text style={{ fontSize: 14, color: '#FFF', marginTop: 4 }}>Ajoutez un nouveau compagnon</Text>
+              </View>
+
+              <View style={{ flex: 1, backgroundColor: '#FFF', borderTopLeftRadius: 30, borderTopRightRadius: 30, marginTop: -30, padding: 24, alignItems: 'center' }}>
+                <Text style={{ fontSize: 18, fontWeight: '700', color: '#2E2A26', textAlign: 'center' }}>Quelle est l'espèce de votre GaliPet ?</Text>
+                <Text style={{ fontSize: 14, color: '#6B6660', textAlign: 'center', marginTop: 8 }}>Sélectionnez pour commencer la création du profil</Text>
+
+                <View style={{ flexDirection: 'row', justifyContent: 'space-between', width: '100%', marginTop: 30 }}>
+                  <TouchableOpacity
+                    style={{ width: '48%', aspectRatio: 1, backgroundColor: '#FFF', borderRadius: 16, borderWidth: 1, borderColor: '#EADBC8', alignItems: 'center', justifyContent: 'center' }}
+                    onPress={() => { setSelectedSpecies('chien'); setFormStep(2); }}
+                    activeOpacity={0.8}
+                  >
+                    <View style={{ width: 60, height: 60, borderRadius: 30, borderWidth: 2, borderColor: '#FF5722', alignItems: 'center', justifyContent: 'center' }}>
+                      <Ionicons name="logo-octocat" size={30} color="#FF5722" />
+                    </View>
+                    <Text style={{ fontSize: 16, fontWeight: '600', color: '#2E2A26', marginTop: 12 }}>Chien</Text>
+                  </TouchableOpacity>
+
+                  <TouchableOpacity
+                    style={{ width: '48%', aspectRatio: 1, backgroundColor: '#FFF', borderRadius: 16, borderWidth: 1, borderColor: '#EADBC8', alignItems: 'center', justifyContent: 'center' }}
+                    onPress={() => { setSelectedSpecies('chat'); setFormStep(2); }}
+                    activeOpacity={0.8}
+                  >
+                    <View style={{ width: 60, height: 60, borderRadius: 30, borderWidth: 2, borderColor: '#FF5722', alignItems: 'center', justifyContent: 'center' }}>
+                      <Ionicons name="logo-octocat" size={30} color="#FF5722" />
+                    </View>
+                    <Text style={{ fontSize: 16, fontWeight: '600', color: '#2E2A26', marginTop: 12 }}>Chat</Text>
+                  </TouchableOpacity>
+                </View>
+
+                <Text style={{ fontSize: 12, color: '#6B6660', textAlign: 'center', marginTop: 30, paddingHorizontal: 20 }}>Vous pourrez ajouter tous les détails dans l'étape suivante</Text>
+
+                <TouchableOpacity onPress={() => { resetAnimalForm(); setAddAnimalModalVisible(false); }} style={{ marginTop: 20, padding: 10 }} activeOpacity={0.7}>
+                  <Text style={{ fontSize: 16, color: '#2E2A26', fontWeight: '600' }}>Annuler</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          ) : (
+            <View style={{ flex: 1, backgroundColor: '#FFF8F1' }}>
+              <View style={{ backgroundColor: '#FF5722', paddingTop: 50, paddingHorizontal: 16, paddingBottom: 16, flexDirection: 'row', alignItems: 'center', gap: 16 }}>
+                <TouchableOpacity onPress={() => setFormStep(1)} activeOpacity={0.7}>
+                  <Ionicons name="arrow-back" size={24} color="#FFF" />
+                </TouchableOpacity>
+                <Text style={{ fontSize: 20, fontWeight: 'bold', color: '#FFF' }}>Informations de base</Text>
+                <View style={{ flex: 1 }} />
+                <TouchableOpacity onPress={() => { resetAnimalForm(); setAddAnimalModalVisible(false); }} activeOpacity={0.7}>
+                  <Ionicons name="close" size={24} color="#FFF" />
+                </TouchableOpacity>
+              </View>
+
+              <ScrollView contentContainerStyle={{ padding: 24 }} showsVerticalScrollIndicator={false}>
+                <View style={{ alignItems: 'center', marginBottom: 24 }}>
+                  <TouchableOpacity onPress={pickImage} activeOpacity={0.8}>
+                    <View style={{ width: 120, height: 120, borderRadius: 60, backgroundColor: '#FFF', borderWidth: 2, borderColor: '#FF5722', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
+                      {animalPhoto ? (
+                        <Image source={{ uri: animalPhoto }} style={{ width: '100%', height: '100%' }} />
+                      ) : (
+                        <Ionicons name="camera" size={40} color="#FF5722" />
+                      )}
+                    </View>
+                  </TouchableOpacity>
+                  <Text style={{ fontSize: 14, color: '#6B6660', marginTop: 8 }}>Photo de profil</Text>
+                </View>
+
+                <View style={{ marginBottom: 16 }}>
+                  <Text style={{ fontSize: 14, fontWeight: '600', color: '#2E2A26', marginBottom: 8 }}>Nom</Text>
+                  <TextInput
+                    style={{ backgroundColor: '#FFF', borderWidth: 1, borderColor: '#EADBC8', borderRadius: 8, padding: 12, fontSize: 16, color: '#2E2A26' }}
+                    placeholder="Entrez le nom de l'animal"
+                    value={animalNom}
+                    onChangeText={setAnimalNom}
+                  />
+                </View>
+
+                <View style={{ marginBottom: 16 }}>
+                  <Text style={{ fontSize: 14, fontWeight: '600', color: '#2E2A26', marginBottom: 8 }}>Race</Text>
+                  <TextInput
+                    style={{ backgroundColor: '#FFF', borderWidth: 1, borderColor: '#EADBC8', borderRadius: 8, padding: 12, fontSize: 16, color: '#2E2A26' }}
+                    placeholder="Entrez la race"
+                    value={animalRace}
+                    onChangeText={setAnimalRace}
+                  />
+                </View>
+
+                <View style={{ marginBottom: 16 }}>
+                  <Text style={{ fontSize: 14, fontWeight: '600', color: '#2E2A26', marginBottom: 8 }}>Date de naissance</Text>
+                  <TouchableOpacity
+                    onPress={() => setShowDatePicker(true)}
+                    style={{ backgroundColor: '#FFF', borderWidth: 1, borderColor: '#EADBC8', borderRadius: 8, padding: 12, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}
+                    activeOpacity={0.8}
+                  >
+                    <Text style={{ fontSize: 16, color: animalDateNaissance ? '#2E2A26' : '#999' }}>
+                      {animalDateNaissance ? animalDateNaissance.toLocaleDateString('fr-FR') : 'Sélectionnez une date'}
+                    </Text>
+                    <Ionicons name="calendar" size={20} color="#FF5722" />
+                  </TouchableOpacity>
+                  {showDatePicker && (
+                    <DateTimePicker
+                      value={animalDateNaissance || new Date()}
+                      mode="date"
+                      display="default"
+                      onChange={(event, selectedDate) => {
+                        setShowDatePicker(false);
+                        if (selectedDate) setAnimalDateNaissance(selectedDate);
+                      }}
+                    />
+                  )}
+                </View>
+
+                <View style={{ marginBottom: 16 }}>
+                  <Text style={{ fontSize: 14, fontWeight: '600', color: '#2E2A26', marginBottom: 8 }}>Sexe</Text>
+                  <View style={{ backgroundColor: '#FFF', borderWidth: 1, borderColor: '#EADBC8', borderRadius: 8, overflow: 'hidden' }}>
+                    <Picker
+                      selectedValue={animalSexe}
+                      onValueChange={(itemValue) => setAnimalSexe(itemValue)}
+                      style={{ height: 50 }}
+                    >
+                      <Picker.Item label="Sélectionnez le sexe" value="" />
+                      <Picker.Item label="Mâle" value="male" />
+                      <Picker.Item label="Femelle" value="femelle" />
+                    </Picker>
+                  </View>
+                </View>
+
+                <View style={{ marginBottom: 16 }}>
+                  <Text style={{ fontSize: 14, fontWeight: '600', color: '#2E2A26', marginBottom: 8 }}>Taille</Text>
+                  <View style={{ backgroundColor: '#FFF', borderWidth: 1, borderColor: '#EADBC8', borderRadius: 8, overflow: 'hidden' }}>
+                    <Picker
+                      selectedValue={animalTaille}
+                      onValueChange={(itemValue) => setAnimalTaille(itemValue)}
+                      style={{ height: 50 }}
+                    >
+                      <Picker.Item label="Sélectionnez la taille" value="" />
+                      <Picker.Item label="Petit" value="petit" />
+                      <Picker.Item label="Moyen" value="moyen" />
+                      <Picker.Item label="Grand" value="grand" />
+                    </Picker>
+                  </View>
+                </View>
+
+                <View style={{ marginBottom: 16 }}>
+                  <Text style={{ fontSize: 14, fontWeight: '600', color: '#2E2A26', marginBottom: 8 }}>Type de poil</Text>
+                  <View style={{ backgroundColor: '#FFF', borderWidth: 1, borderColor: '#EADBC8', borderRadius: 8, overflow: 'hidden' }}>
+                    <Picker
+                      selectedValue={animalTypePoil}
+                      onValueChange={(itemValue) => setAnimalTypePoil(itemValue)}
+                      style={{ height: 50 }}
+                    >
+                      <Picker.Item label="Sélectionnez le type de poil" value="" />
+                      <Picker.Item label="Court" value="court" />
+                      <Picker.Item label="Mi-long" value="mi-long" />
+                      <Picker.Item label="Long" value="long" />
+                    </Picker>
+                  </View>
+                </View>
+
+                <View style={{ marginBottom: 24 }}>
+                  <Text style={{ fontSize: 14, fontWeight: '600', color: '#2E2A26', marginBottom: 8 }}>Description</Text>
+                  <TextInput
+                    style={{ backgroundColor: '#FFF', borderWidth: 1, borderColor: '#EADBC8', borderRadius: 8, padding: 12, fontSize: 16, color: '#2E2A26', minHeight: 100, textAlignVertical: 'top' }}
+                    placeholder="Décrivez votre animal..."
+                    value={animalDescription}
+                    onChangeText={setAnimalDescription}
+                    multiline
+                  />
+                </View>
+
+                {/* Santé & Soins Section */}
+                <View style={{ marginBottom: 24 }}>
+                  <Text style={{ fontSize: 18, fontWeight: '700', color: '#2E2A26', marginBottom: 16 }}>Santé & Soins</Text>
+
+                  <View style={{ marginBottom: 16 }}>
+                    <Text style={{ fontSize: 14, fontWeight: '600', color: '#2E2A26', marginBottom: 8 }}>Poids (kg)</Text>
+                    <TextInput
+                      style={{ backgroundColor: '#FFF', borderWidth: 1, borderColor: '#EADBC8', borderRadius: 8, padding: 12, fontSize: 16, color: '#2E2A26' }}
+                      placeholder="Entrez le poids"
+                      value={animalPoids}
+                      onChangeText={setAnimalPoids}
+                      keyboardType="numeric"
+                    />
+                  </View>
+
+                  <View style={{ marginBottom: 16 }}>
+                    <Text style={{ fontSize: 14, fontWeight: '600', color: '#2E2A26', marginBottom: 8 }}>Allergies</Text>
+                    <TextInput
+                      style={{ backgroundColor: '#FFF', borderWidth: 1, borderColor: '#EADBC8', borderRadius: 8, padding: 12, fontSize: 16, color: '#2E2A26', minHeight: 80, textAlignVertical: 'top' }}
+                      placeholder="Listez les allergies connues..."
+                      value={animalAllergies}
+                      onChangeText={setAnimalAllergies}
+                      multiline
+                    />
+                  </View>
+
+                  <View style={{ marginBottom: 16 }}>
+                    <Text style={{ fontSize: 14, fontWeight: '600', color: '#2E2A26', marginBottom: 8 }}>Vaccinations</Text>
+                    <TextInput
+                      style={{ backgroundColor: '#FFF', borderWidth: 1, borderColor: '#EADBC8', borderRadius: 8, padding: 12, fontSize: 16, color: '#2E2A26', minHeight: 80, textAlignVertical: 'top' }}
+                      placeholder="Listez les vaccinations..."
+                      value={animalVaccinations}
+                      onChangeText={setAnimalVaccinations}
+                      multiline
+                    />
+                  </View>
+                </View>
+
+                {/* Personnalité Section */}
+                <View style={{ marginBottom: 24 }}>
+                  <Text style={{ fontSize: 18, fontWeight: '700', color: '#2E2A26', marginBottom: 16 }}>Personnalité</Text>
+                  <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 10 }}>
+                    {personalityTags.map((tag) => (
+                      <TouchableOpacity
+                        key={tag}
+                        onPress={() => {
+                          if (selectedPersonalityTags.includes(tag)) {
+                            setSelectedPersonalityTags(selectedPersonalityTags.filter(t => t !== tag));
+                          } else {
+                            setSelectedPersonalityTags([...selectedPersonalityTags, tag]);
+                          }
+                        }}
+                        style={{
+                          paddingHorizontal: 16,
+                          paddingVertical: 10,
+                          borderRadius: 20,
+                          borderWidth: 1,
+                          borderColor: selectedPersonalityTags.includes(tag) ? '#FF5722' : '#EADBC8',
+                          backgroundColor: selectedPersonalityTags.includes(tag) ? '#FF5722' : '#FFF',
+                        }}
+                        activeOpacity={0.8}
+                      >
+                        <Text style={{ fontSize: 14, fontWeight: '600', color: selectedPersonalityTags.includes(tag) ? '#FFF' : '#2E2A26' }}>{tag}</Text>
+                      </TouchableOpacity>
+                    ))}
+                  </View>
+                </View>
+              </ScrollView>
+
+              {/* Buttons */}
+              <View style={{ padding: 24, paddingBottom: 40, backgroundColor: '#FFF8F1' }}>
+                <TouchableOpacity
+                  style={{ backgroundColor: '#FF5722', paddingVertical: 16, borderRadius: 25, alignItems: 'center', marginBottom: 12 }}
+                  onPress={handleCreatePet}
+                  activeOpacity={0.8}
+                >
+                  <Text style={{ fontSize: 16, fontWeight: '700', color: '#FFF' }}>Créer</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  onPress={() => { resetAnimalForm(); setAddAnimalModalVisible(false); }}
+                  style={{ alignItems: 'center', padding: 12 }}
+                  activeOpacity={0.7}
+                >
+                  <Text style={{ fontSize: 16, color: '#2E2A26', fontWeight: '600' }}>Annuler</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          )}
+        </Modal>
+      </View>
+    );
+  }
+
+  if (currentTab === 'petProfile' && currentAnimal) {
+    return (
+      <View style={styles.container}>
+        <PetProfileScreen
+          animalData={currentAnimal}
+          onNavigate={setCurrentTab}
+          onAddAnother={() => {
+            setFormStep(1);
+            setSelectedSpecies(null);
+            setCurrentTab('animals');
+            setAddAnimalModalVisible(true);
+          }}
+          onUpdatePet={(updatedPet) => {
+            setCurrentAnimal(updatedPet);
+            const updatedUserPets = userPets.map(pet => 
+              pet.id === updatedPet.id ? updatedPet : pet
+            );
+            setUserPets(updatedUserPets);
+          }}
+          onDeletePet={(deletedPetId) => {
+            setCurrentAnimal(null);
+            const updatedUserPets = userPets.filter(pet => pet.id !== deletedPetId);
+            setUserPets(updatedUserPets);
+          }}
+        />
+        <TabBar currentTab="animals" setCurrentTab={setCurrentTab} />
       </View>
     );
   }
