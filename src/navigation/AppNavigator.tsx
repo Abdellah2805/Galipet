@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, Image, Pressable, FlatList, TextInput, TouchableOpacity, Modal, ActivityIndicator, Alert } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import Icon from '../components/Icon';
 import { getSupabase } from '../lib/supabase';
 import { colors, radius, spacing } from '../theme/colors';
 import ProfileScreen from '../screens/ProfileScreen';
@@ -64,7 +64,7 @@ const TabBar = ({ currentTab, setCurrentTab }: { currentTab: string; setCurrentT
       onPress={() => setCurrentTab('explore')}
       activeOpacity={0.7}
     >
-      <Ionicons name="search" size={22} color={currentTab === 'explore' ? '#E87A5D' : '#6B6660'} />
+      <Icon name="search" size={22} color={currentTab === 'explore' ? '#E87A5D' : '#6B6660'} />
       <Text style={[styles.tabLabel, currentTab === 'explore' && styles.tabLabelActive]}>Explorer</Text>
     </TouchableOpacity>
     
@@ -73,7 +73,7 @@ const TabBar = ({ currentTab, setCurrentTab }: { currentTab: string; setCurrentT
       onPress={() => setCurrentTab('animals')}
       activeOpacity={0.7}
     >
-      <Ionicons name="heart" size={22} color={currentTab === 'animals' ? '#E87A5D' : '#6B6660'} />
+      <Icon name="heart" size={22} color={currentTab === 'animals' ? '#E87A5D' : '#6B6660'} />
       <Text style={[styles.tabLabel, currentTab === 'animals' && styles.tabLabelActive]}>Mes Animaux</Text>
     </TouchableOpacity>
     
@@ -82,7 +82,7 @@ const TabBar = ({ currentTab, setCurrentTab }: { currentTab: string; setCurrentT
       onPress={() => setCurrentTab('messages')}
       activeOpacity={0.7}
     >
-      <Ionicons name="chatbubble" size={22} color={currentTab === 'messages' ? '#E87A5D' : '#6B6660'} />
+      <Icon name="chatbubble" size={22} color={currentTab === 'messages' ? '#E87A5D' : '#6B6660'} />
       <Text style={[styles.tabLabel, currentTab === 'messages' && styles.tabLabelActive]}>Messages</Text>
     </TouchableOpacity>
     
@@ -91,7 +91,7 @@ const TabBar = ({ currentTab, setCurrentTab }: { currentTab: string; setCurrentT
       onPress={() => setCurrentTab('profile')}
       activeOpacity={0.7}
     >
-      <Ionicons name="person" size={22} color={currentTab === 'profile' ? '#E87A5D' : '#6B6660'} />
+      <Icon name="person" size={22} color={currentTab === 'profile' ? '#E87A5D' : '#6B6660'} />
       <Text style={[styles.tabLabel, currentTab === 'profile' && styles.tabLabelActive]}>Profil</Text>
     </TouchableOpacity>
   </View>
@@ -105,7 +105,7 @@ const ServiceCard = ({ item, onPress }: { item: typeof SERVICE_CATEGORIES[0]; on
     activeOpacity={0.8}
   >
     <View style={[styles.categoryIconContainer, { backgroundColor: item.color + '20' }]}>
-      <Ionicons name={item.icon as any} size={28} color={item.color} />
+      <Icon name={item.icon as any} size={28} color={item.color} />
     </View>
     <Text style={[styles.categoryTitle, { color: item.color }]}>{item.title}</Text>
     <Text style={styles.categorySubtitle}>{item.subtitle}</Text>
@@ -365,18 +365,18 @@ const handleCreatePet = async () => {
       <View style={styles.container}>
         <View style={styles.header}>
           <TouchableOpacity style={styles.headerIconBtn} onPress={() => setCurrentTab('profile')} activeOpacity={0.7}>
-            <Ionicons name="person" size={20} color="#FFF" />
+            <Icon name="person" size={20} color="#FFF" />
           </TouchableOpacity>
           <Text style={styles.headerLogo}>gali<Text style={styles.headerLogoAccent}>'</Text>pet</Text>
           <View style={styles.headerRightIcons}>
             <TouchableOpacity onPress={() => handleHeaderIconPress('messages')} activeOpacity={0.7}>
-              <Ionicons name="chatbubble-ellipses" size={22} color="#FFF" />
+              <Icon name="chatbubble-ellipses" size={22} color="#FFF" />
             </TouchableOpacity>
             <TouchableOpacity onPress={() => console.log('calendar')} activeOpacity={0.7}>
-              <Ionicons name="calendar" size={22} color="#FFF" />
+              <Icon name="calendar" size={22} color="#FFF" />
             </TouchableOpacity>
             <TouchableOpacity onPress={() => console.log('notifications')} activeOpacity={0.7}>
-              <Ionicons name="notifications" size={22} color="#FFF" />
+              <Icon name="notifications" size={22} color="#FFF" />
             </TouchableOpacity>
           </View>
         </View>
@@ -399,7 +399,7 @@ const handleCreatePet = async () => {
           {userPets.length === 0 ? (
             <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: 20 }}>
               <View style={{ width: 100, height: 100, borderRadius: 50, backgroundColor: '#FFF5F0', alignItems: 'center', justifyContent: 'center' }}>
-                <Ionicons name="paw" size={50} color="#FF5722" />
+                <Icon name="paw" size={50} color="#FF5722" />
               </View>
               <Text style={{ fontSize: 20, fontWeight: '700', color: '#2E2A26', marginTop: 20 }}>Aucun animal enregistré</Text>
               <Text style={{ fontSize: 14, color: '#6B6660', marginTop: 8, textAlign: 'center' }}>Ajoutez votre premier compagnon pour profiter de tous nos services</Text>
@@ -408,7 +408,7 @@ const handleCreatePet = async () => {
                 onPress={() => setAddAnimalModalVisible(true)}
                 activeOpacity={0.8}
               >
-                <Ionicons name="add" size={22} color="#FFF" />
+                <Icon name="add" size={22} color="#FFF" />
                 <Text style={{ color: '#FFF', fontSize: 16, fontWeight: '600' }}>+ Ajouter un animal</Text>
               </TouchableOpacity>
             </View>
@@ -429,7 +429,7 @@ const handleCreatePet = async () => {
                     {item.profile_image_url ? (
                       <Image source={{ uri: item.profile_image_url }} style={{ width: '100%', height: '100%' }} resizeMode="cover" />
                     ) : (
-                      <Ionicons name="paw" size={24} color="#FF5722" />
+                      <Icon name="paw" size={24} color="#FF5722" />
                     )}
                   </View>
                   <View style={{ marginLeft: 12, flex: 1 }}>
@@ -437,7 +437,7 @@ const handleCreatePet = async () => {
                     <Text style={{ fontSize: 14, color: '#6B6660' }}>{item.species === 'chien' ? 'Chien' : 'Chat'}</Text>
                     {item.breed && <Text style={{ fontSize: 12, color: '#6B6660' }}>{item.breed}</Text>}
                   </View>
-                  <Ionicons name="chevron-forward" size={20} color="#6B6660" />
+                  <Icon name="chevron-forward" size={20} color="#6B6660" />
                 </TouchableOpacity>
               )}
             />
@@ -454,7 +454,7 @@ const handleCreatePet = async () => {
             <View style={{ flex: 1, backgroundColor: '#FFF8F1' }}>
               <View style={{ backgroundColor: '#FF5722', height: '33%', alignItems: 'center', justifyContent: 'center', paddingHorizontal: 20 }}>
                 <View style={{ width: 80, height: 80, borderRadius: 40, backgroundColor: '#FFF', alignItems: 'center', justifyContent: 'center' }}>
-                  <Ionicons name="paw" size={40} color="#FF5722" />
+                  <Icon name="paw" size={40} color="#FF5722" />
                 </View>
                 <Text style={{ fontSize: 24, fontWeight: 'bold', color: '#FFF', marginTop: 12 }}>Anim'All</Text>
                 <Text style={{ fontSize: 14, color: '#FFF', marginTop: 4 }}>Ajoutez un nouveau compagnon</Text>
@@ -471,7 +471,7 @@ const handleCreatePet = async () => {
                     activeOpacity={0.8}
                   >
                     <View style={{ width: 60, height: 60, borderRadius: 30, borderWidth: 2, borderColor: '#FF5722', alignItems: 'center', justifyContent: 'center' }}>
-                      <Ionicons name="logo-octocat" size={30} color="#FF5722" />
+                      <Icon name="logo-octocat" size={30} color="#FF5722" />
                     </View>
                     <Text style={{ fontSize: 16, fontWeight: '600', color: '#2E2A26', marginTop: 12 }}>Chien</Text>
                   </TouchableOpacity>
@@ -482,7 +482,7 @@ const handleCreatePet = async () => {
                     activeOpacity={0.8}
                   >
                     <View style={{ width: 60, height: 60, borderRadius: 30, borderWidth: 2, borderColor: '#FF5722', alignItems: 'center', justifyContent: 'center' }}>
-                      <Ionicons name="logo-octocat" size={30} color="#FF5722" />
+                      <Icon name="logo-octocat" size={30} color="#FF5722" />
                     </View>
                     <Text style={{ fontSize: 16, fontWeight: '600', color: '#2E2A26', marginTop: 12 }}>Chat</Text>
                   </TouchableOpacity>
@@ -499,12 +499,12 @@ const handleCreatePet = async () => {
             <View style={{ flex: 1, backgroundColor: '#FFF8F1' }}>
               <View style={{ backgroundColor: '#FF5722', paddingTop: 50, paddingHorizontal: 16, paddingBottom: 16, flexDirection: 'row', alignItems: 'center', gap: 16 }}>
                 <TouchableOpacity onPress={() => setFormStep(1)} activeOpacity={0.7}>
-                  <Ionicons name="arrow-back" size={24} color="#FFF" />
+                  <Icon name="arrow-back" size={24} color="#FFF" />
                 </TouchableOpacity>
                 <Text style={{ fontSize: 20, fontWeight: 'bold', color: '#FFF' }}>Informations de base</Text>
                 <View style={{ flex: 1 }} />
                 <TouchableOpacity onPress={() => { resetAnimalForm(); setAddAnimalModalVisible(false); }} activeOpacity={0.7}>
-                  <Ionicons name="close" size={24} color="#FFF" />
+                  <Icon name="close" size={24} color="#FFF" />
                 </TouchableOpacity>
               </View>
 
@@ -515,7 +515,7 @@ const handleCreatePet = async () => {
                       {animalPhoto ? (
                         <Image source={{ uri: animalPhoto }} style={{ width: '100%', height: '100%' }} />
                       ) : (
-                        <Ionicons name="camera" size={40} color="#FF5722" />
+                        <Icon name="camera" size={40} color="#FF5722" />
                       )}
                     </View>
                   </TouchableOpacity>
@@ -552,7 +552,7 @@ const handleCreatePet = async () => {
                     <Text style={{ fontSize: 16, color: animalDateNaissance ? '#2E2A26' : '#999' }}>
                       {animalDateNaissance ? animalDateNaissance.toLocaleDateString('fr-FR') : 'Sélectionnez une date'}
                     </Text>
-                    <Ionicons name="calendar" size={20} color="#FF5722" />
+                    <Icon name="calendar" size={20} color="#FF5722" />
                   </TouchableOpacity>
                   {showDatePicker && (
                     <DateTimePicker
@@ -754,23 +754,23 @@ const handleCreatePet = async () => {
       <View style={styles.container}>
         <View style={styles.header}>
           <TouchableOpacity style={styles.headerIconBtn} onPress={() => setCurrentTab('profile')} activeOpacity={0.7}>
-            <Ionicons name="person" size={20} color="#FFF" />
+            <Icon name="person" size={20} color="#FFF" />
           </TouchableOpacity>
           <Text style={styles.headerLogo}>gali<Text style={styles.headerLogoAccent}>'</Text>pet</Text>
           <View style={styles.headerRightIcons}>
             <TouchableOpacity onPress={() => handleHeaderIconPress('messages')} activeOpacity={0.7}>
-              <Ionicons name="chatbubble-ellipses" size={22} color="#FFF" />
+              <Icon name="chatbubble-ellipses" size={22} color="#FFF" />
             </TouchableOpacity>
             <TouchableOpacity onPress={() => console.log('calendar')} activeOpacity={0.7}>
-              <Ionicons name="calendar" size={22} color="#FFF" />
+              <Icon name="calendar" size={22} color="#FFF" />
             </TouchableOpacity>
             <TouchableOpacity onPress={() => console.log('notifications')} activeOpacity={0.7}>
-              <Ionicons name="notifications" size={22} color="#FFF" />
+              <Icon name="notifications" size={22} color="#FFF" />
             </TouchableOpacity>
           </View>
         </View>
         <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
-          <Ionicons name="chatbubble-ellipses-outline" size={48} color="#6B6660" />
+          <Icon name="chatbubble-ellipses-outline" size={48} color="#6B6660" />
           <Text style={{ fontSize: 18, fontWeight: '600', color: '#2E2A26', marginTop: 12 }}>Messages</Text>
           <Text style={{ fontSize: 14, color: '#6B6660', marginTop: 8 }}>Vos conversations</Text>
         </View>
@@ -785,18 +785,18 @@ const handleCreatePet = async () => {
         {/* HEADER */}
         <View style={styles.header}>
           <TouchableOpacity style={styles.headerIconBtn} onPress={() => setCurrentTab('profile')} activeOpacity={0.7}>
-            <Ionicons name="person" size={20} color="#FFF" />
+            <Icon name="person" size={20} color="#FFF" />
           </TouchableOpacity>
           <Text style={styles.headerLogo}>gali<Text style={styles.headerLogoAccent}>'</Text>pet</Text>
           <View style={styles.headerRightIcons}>
             <TouchableOpacity onPress={() => handleHeaderIconPress('messages')} activeOpacity={0.7}>
-              <Ionicons name="chatbubble-ellipses" size={22} color="#FFF" />
+              <Icon name="chatbubble-ellipses" size={22} color="#FFF" />
             </TouchableOpacity>
             <TouchableOpacity onPress={() => console.log('calendar')} activeOpacity={0.7}>
-              <Ionicons name="calendar" size={22} color="#FFF" />
+              <Icon name="calendar" size={22} color="#FFF" />
             </TouchableOpacity>
             <TouchableOpacity onPress={() => console.log('notifications')} activeOpacity={0.7}>
-              <Ionicons name="notifications" size={22} color="#FFF" />
+              <Icon name="notifications" size={22} color="#FFF" />
             </TouchableOpacity>
           </View>
         </View>
@@ -809,29 +809,29 @@ const handleCreatePet = async () => {
 
         {/* VILLE SELECTOR */}
         <TouchableOpacity style={styles.citySelector} activeOpacity={0.7}>
-          <Ionicons name="location" size={16} color="#E87A5D" />
+          <Icon name="location" size={16} color="#E87A5D" />
           <Text style={styles.cityText}>Paris</Text>
-          <Ionicons name="chevron-down" size={12} color="#E87A5D" />
+          <Icon name="chevron-down" size={12} color="#E87A5D" />
         </TouchableOpacity>
 
         {/* SEARCH BAR */}
         <View style={styles.searchContainer}>
           <View style={styles.searchBar}>
-            <Ionicons name="search" size={18} color="#999" />
+            <Icon name="search" size={18} color="#999" />
             <TextInput style={styles.searchInput} placeholder="Rechercher des services, prestataires." placeholderTextColor="#999" />
           </View>
           <TouchableOpacity style={styles.filterBtn} activeOpacity={0.7}>
-            <Ionicons name="options" size={20} color="#FFF" />
+            <Icon name="options" size={20} color="#FFF" />
           </TouchableOpacity>
         </View>
 
         {/* VIEW TOGGLE */}
         <View style={styles.toggleContainer}>
           <TouchableOpacity style={[styles.toggleBtn, viewMode === 'grid' && styles.toggleBtnActive]} onPress={() => setViewMode('grid')} activeOpacity={0.7}>
-            <Ionicons name="grid" size={18} color={viewMode === 'grid' ? '#FFF' : '#2E2A26'} />
+            <Icon name="grid" size={18} color={viewMode === 'grid' ? '#FFF' : '#2E2A26'} />
           </TouchableOpacity>
           <TouchableOpacity style={[styles.toggleBtn, viewMode === 'map' && styles.toggleBtnActive]} onPress={() => setViewMode('map')} activeOpacity={0.7}>
-            <Ionicons name="map" size={18} color={viewMode === 'map' ? '#FFF' : '#2E2A26'} />
+            <Icon name="map" size={18} color={viewMode === 'map' ? '#FFF' : '#2E2A26'} />
           </TouchableOpacity>
         </View>
 
@@ -847,7 +847,7 @@ const handleCreatePet = async () => {
         {viewMode === 'map' && (
           <View style={styles.mapContainer}>
             <View style={styles.mapPlaceholder}>
-              <Ionicons name="map" size={40} color="#6B6660" />
+              <Icon name="map" size={40} color="#6B6660" />
               <Text style={styles.mapPlaceholderLabel}>Carte interactive</Text>
             </View>
             <View style={styles.mapFilters}>

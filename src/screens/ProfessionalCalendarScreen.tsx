@@ -3,7 +3,7 @@ import {
   View, Text, StyleSheet, TouchableOpacity, ScrollView,
   Dimensions, ActivityIndicator, Modal, TextInput, Alert,
 } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import Icon from '../components/Icon';
 import { getSupabase } from '../lib/supabase';
 import { colors, radius, spacing } from '../theme/colors';
 
@@ -239,7 +239,7 @@ export default function ProfessionalCalendarScreen() {
           onPress={() => setValue(opt)}
         >
           <Text style={[styles.pickerText, value === opt && styles.pickerTextActive]}>{opt}</Text>
-          {value === opt && <Ionicons name="chevron-down" size={14} color={colors.primary} />}
+          {value === opt && <Icon name="chevron-down" size={14} color={colors.primary} />}
         </TouchableOpacity>
       ))}
     </View>
@@ -390,15 +390,15 @@ export default function ProfessionalCalendarScreen() {
       <View style={styles.header}>
         <View style={styles.headerTop}>
           <TouchableOpacity style={styles.headerIconCircle}>
-            <Ionicons name="time-outline" size={20} color="#fff" />
+            <Icon name="time-outline" size={20} color="#fff" />
           </TouchableOpacity>
           <Text style={styles.headerLogo}>gali<Text style={styles.headerLogoAccent}>'</Text>pet</Text>
           <View style={styles.headerRight}>
             <TouchableOpacity style={styles.headerIconBtn}>
-              <Ionicons name="chatbubble-ellipses-outline" size={22} color="#fff" />
+              <Icon name="chatbubble-ellipses-outline" size={22} color="#fff" />
             </TouchableOpacity>
             <TouchableOpacity style={styles.headerIconBtn}>
-              <Ionicons name="notifications-outline" size={22} color="#fff" />
+              <Icon name="notifications-outline" size={22} color="#fff" />
             </TouchableOpacity>
           </View>
         </View>
@@ -406,7 +406,7 @@ export default function ProfessionalCalendarScreen() {
 
         {/* Bouton réserver */}
         <TouchableOpacity style={styles.reserveBtn} onPress={openModal}>
-          <Ionicons name="ban" size={16} color={colors.textMuted} />
+          <Icon name="ban" size={16} color={colors.textMuted} />
           <Text style={styles.reserveText}>Se réserver un créneau</Text>
         </TouchableOpacity>
 
@@ -429,11 +429,11 @@ export default function ProfessionalCalendarScreen() {
       {/* NAVIGATION DATE */}
       <View style={styles.dateNav}>
         <TouchableOpacity onPress={goPrev} style={styles.dateNavBtn}>
-          <Ionicons name="chevron-back" size={22} color={colors.text} />
+          <Icon name="chevron-back" size={22} color={colors.text} />
         </TouchableOpacity>
         <Text style={styles.dateNavText}>{formatHeaderDate()}</Text>
         <TouchableOpacity onPress={goNext} style={styles.dateNavBtn}>
-          <Ionicons name="chevron-forward" size={22} color={colors.text} />
+          <Icon name="chevron-forward" size={22} color={colors.text} />
         </TouchableOpacity>
       </View>
 
@@ -460,7 +460,7 @@ export default function ProfessionalCalendarScreen() {
             <View style={styles.modalHeader}>
               <Text style={styles.modalTitle}>Se réserver un créneau</Text>
               <TouchableOpacity onPress={() => setShowModal(false)}>
-                <Ionicons name="close" size={24} color={colors.textMuted} />
+                <Icon name="close" size={24} color={colors.textMuted} />
               </TouchableOpacity>
             </View>
 

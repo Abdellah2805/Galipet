@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { View, StyleSheet, TouchableOpacity, Text } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import Icon from '../components/Icon';
 import ProfessionalDashboard from '../screens/ProfessionalDashboard';
 import ProfessionalCalendarScreen from '../screens/ProfessionalCalendarScreen';
 import { colors, radius, spacing } from '../theme/colors';
@@ -23,7 +23,7 @@ export default function ProfessionalNavigator() {
         {currentTab === 'calendar' && <ProfessionalCalendarScreen />}
         {currentTab === 'profile' && (
           <View style={styles.placeholder}>
-            <Ionicons name="person-outline" size={48} color={colors.textMuted} />
+            <Icon name="person-outline" size={48} color={colors.textMuted} />
             <Text style={styles.placeholderText}>Mon Profil</Text>
           </View>
         )}
@@ -40,11 +40,11 @@ export default function ProfessionalNavigator() {
               onPress={() => setCurrentTab(t.key)}
               activeOpacity={0.7}
             >
-              <Ionicons
-                name={t.icon}
-                size={22}
-                color={active ? colors.primary : colors.textMuted}
-              />
+              <Icon
+              name={t.icon}
+              size={22}
+              color={active ? colors.primary : colors.textMuted}
+            />
               <Text style={[styles.navLabel, active && styles.navLabelActive]}>
                 {t.label}
               </Text>

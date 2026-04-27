@@ -8,7 +8,7 @@ import {
   ActivityIndicator,
   Dimensions,
 } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import Icon from '../components/Icon';
 import { getSupabase } from '../lib/supabase';
 import { colors, radius, spacing } from '../theme/colors';
 
@@ -162,15 +162,15 @@ export default function ProfessionalDashboard() {
       <View style={styles.header}>
         <View style={styles.headerTop}>
           <View style={styles.headerIconCircle}>
-            <Ionicons name="person-outline" size={20} color="#fff" />
+            <Icon name="person-outline" size={20} color="#fff" />
           </View>
           <Text style={styles.headerLogo}>gali<Text style={styles.headerLogoAccent}>'</Text>pet</Text>
           <View style={styles.headerRight}>
             <TouchableOpacity style={styles.headerIconBtn}>
-              <Ionicons name="chatbubble-ellipses-outline" size={22} color="#fff" />
+              <Icon name="chatbubble-ellipses-outline" size={22} color="#fff" />
             </TouchableOpacity>
             <TouchableOpacity style={styles.headerIconBtn}>
-              <Ionicons name="notifications-outline" size={22} color="#fff" />
+              <Icon name="notifications-outline" size={22} color="#fff" />
             </TouchableOpacity>
           </View>
         </View>
@@ -204,7 +204,7 @@ export default function ProfessionalDashboard() {
               <View key={i} style={styles.kpiCard}>
                 <View style={styles.kpiTopRow}>
                   <View style={[styles.kpiIconWrap, { backgroundColor: kpi.color + '15' }]}>
-                    <Ionicons name={kpi.icon as any} size={20} color={kpi.color} />
+                    <Icon name={kpi.icon as any} size={20} color={kpi.color} />
                   </View>
                   <View style={styles.kpiMiniLine} />
                 </View>
@@ -219,7 +219,7 @@ export default function ProfessionalDashboard() {
           <View style={styles.card}>
             <View style={styles.cardHeader}>
               <Text style={styles.cardTitle}>Tendance des revenus - {PERIOD_LABELS[period]}</Text>
-              <Ionicons name="trending-up-outline" size={20} color={colors.primary} />
+              <Icon name="trending-up-outline" size={20} color={colors.primary} />
             </View>
             <View style={styles.chartWrap}>
               <View style={styles.chartYAxis}>
@@ -296,18 +296,18 @@ export default function ProfessionalDashboard() {
             </View>
             <TouchableOpacity style={styles.activityRow}>
               <View style={styles.activityIconWrap}>
-                <Ionicons name="star" size={18} color="#fff" />
+                <Icon name="star" size={18} color="#fff" />
               </View>
               <View style={styles.activityTextWrap}>
                 <Text style={styles.activityTitle}>Mes avis</Text>
                 <View style={styles.activityStars}>
                   {[1, 2, 3, 4, 5].map(s => (
-                    <Ionicons key={s} name="star-outline" size={14} color="#F4C28F" />
+                    <Icon key={s} name="star-outline" size={14} color="#F4C28F" />
                   ))}
                   <Text style={styles.activityRate}>  0.0 (0 avis)</Text>
                 </View>
               </View>
-              <Ionicons name="chevron-forward" size={18} color={colors.textMuted} />
+              <Icon name="chevron-forward" size={18} color={colors.textMuted} />
             </TouchableOpacity>
           </View>
 

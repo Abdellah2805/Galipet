@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Image, ScrollView, ActivityIndicator, Modal, TextInput, Alert } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import Icon from '../components/Icon';
 import { colors, spacing } from '../theme/colors';
 import { getSupabase } from '../lib/supabase';
 import * as ImagePicker from 'expo-image-picker';
@@ -293,13 +293,13 @@ export default function PetProfileScreen({ animalData, onNavigate, onAddAnother,
                   resizeMode="cover"
                 />
               ) : (
-                <Ionicons name="paw" size={24} color="#FF5722" />
+                <Icon name="paw" size={24} color="#FF5722" />
               )}
             </View>
           </TouchableOpacity>
           <TouchableOpacity style={styles.addButton} onPress={onAddAnother} activeOpacity={0.7}>
             <View style={styles.addButtonInner}>
-              <Ionicons name="add" size={20} color="#FFF" />
+              <Icon name="add" size={20} color="#FFF" />
             </View>
           </TouchableOpacity>
         </View>
@@ -308,13 +308,13 @@ export default function PetProfileScreen({ animalData, onNavigate, onAddAnother,
 
         <View style={styles.headerRightIcons}>
           <TouchableOpacity onPress={() => onNavigate('messages')} activeOpacity={0.7}>
-            <Ionicons name="chatbubble-ellipses" size={22} color="#FFF" />
+            <Icon name="chatbubble-ellipses" size={22} color="#FFF" />
           </TouchableOpacity>
           <TouchableOpacity onPress={() => console.log('calendar')} activeOpacity={0.7}>
-            <Ionicons name="calendar" size={22} color="#FFF" />
+            <Icon name="calendar" size={22} color="#FFF" />
           </TouchableOpacity>
           <TouchableOpacity onPress={() => console.log('notifications')} activeOpacity={0.7}>
-            <Ionicons name="notifications" size={22} color="#FFF" />
+            <Icon name="notifications" size={22} color="#FFF" />
           </TouchableOpacity>
         </View>
       </View>
@@ -353,7 +353,7 @@ export default function PetProfileScreen({ animalData, onNavigate, onAddAnother,
                 />
               ) : (
                 <View style={styles.previewImagePlaceholder}>
-                  <Ionicons name="paw" size={64} color="#FF5722" />
+                  <Icon name="paw" size={64} color="#FF5722" />
                 </View>
               )}
               <View style={styles.previewOverlay}>
@@ -386,7 +386,7 @@ export default function PetProfileScreen({ animalData, onNavigate, onAddAnother,
               <View style={styles.sectionHeader}>
                 <Text style={styles.sectionTitle}>Informations de base</Text>
                 <TouchableOpacity onPress={(e) => { e.stopPropagation(); openEditModal('basic'); }} style={styles.editIcon}>
-                  <Ionicons name="pencil" size={20} color="#FF5722" />
+                  <Icon name="pencil" size={20} color="#FF5722" />
                 </TouchableOpacity>
               </View>
               <View style={styles.sectionContent}>
@@ -406,7 +406,7 @@ export default function PetProfileScreen({ animalData, onNavigate, onAddAnother,
                 <View style={styles.sectionHeader}>
                   <Text style={styles.sectionTitle}>Personnalité</Text>
                   <TouchableOpacity onPress={(e) => { e.stopPropagation(); openEditModal('basic'); }} style={styles.editIcon}>
-                    <Ionicons name="pencil" size={20} color="#FF5722" />
+                    <Icon name="pencil" size={20} color="#FF5722" />
                   </TouchableOpacity>
                 </View>
                 <View style={styles.tagsContainer}>
@@ -424,7 +424,7 @@ export default function PetProfileScreen({ animalData, onNavigate, onAddAnother,
               <View style={styles.sectionHeader}>
                 <Text style={styles.sectionTitle}>Santé</Text>
                 <TouchableOpacity onPress={(e) => { e.stopPropagation(); openEditModal('health'); }} style={styles.editIcon}>
-                  <Ionicons name="pencil" size={20} color="#FF5722" />
+                  <Icon name="pencil" size={20} color="#FF5722" />
                 </TouchableOpacity>
               </View>
               <View style={styles.sectionContent}>
@@ -456,7 +456,7 @@ export default function PetProfileScreen({ animalData, onNavigate, onAddAnother,
                       />
                     ) : (
                       <View style={styles.galleryPhotoPlaceholder}>
-                        <Ionicons name="image-outline" size={32} color="#ccc" />
+                        <Icon name="image-outline" size={32} color="#ccc" />
                       </View>
                     )}
                   </View>
@@ -464,7 +464,7 @@ export default function PetProfileScreen({ animalData, onNavigate, onAddAnother,
                 {galleryPhotos.length < 8 && (
                   <TouchableOpacity style={styles.addPhotoButton} onPress={pickGalleryImage} activeOpacity={0.7}>
                     <View style={styles.addPhotoButtonInner}>
-                      <Ionicons name="add" size={24} color="#FF5722" />
+                      <Icon name="add" size={24} color="#FF5722" />
                     </View>
                   </TouchableOpacity>
                 )}
@@ -478,7 +478,7 @@ export default function PetProfileScreen({ animalData, onNavigate, onAddAnother,
 
             {/* Bouton Supprimer */}
             <TouchableOpacity style={styles.deleteButton} onPress={handleDeletePet} activeOpacity={0.7}>
-              <Ionicons name="trash-outline" size={20} color="#FFF" />
+              <Icon name="trash-outline" size={20} color="#FFF" />
               <Text style={styles.deleteButtonText}>Supprimer le profil</Text>
             </TouchableOpacity>
           </View>
@@ -494,7 +494,7 @@ export default function PetProfileScreen({ animalData, onNavigate, onAddAnother,
         <View style={styles.modalContainer}>
           <View style={styles.modalHeader}>
             <TouchableOpacity onPress={closeEditModal} activeOpacity={0.7}>
-              <Ionicons name="close" size={24} color="#FFF" />
+              <Icon name="close" size={24} color="#FFF" />
             </TouchableOpacity>
             <Text style={styles.modalTitle}>
               {editingSection === 'basic' ? 'Modifier infos de base' : 'Modifier santé'}

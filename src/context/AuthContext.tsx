@@ -17,15 +17,26 @@ export function AuthProvider({ children }) {
   useEffect(() => {
     if (!mounted) return;
 
+    // Bypass complet lors du rendu statique (SSR/build)
+    if (typeof window === 'undefined') {
+      setLoading(false);
+      return;
+    }
+
     const supabase = getSupabase();
     if (!supabase) {
       setLoading(false);
       return;
     }
 
+    // Timeout de securite : evite le chargement infini si getSession ne repond jamais
+    const timeoutId = setTimeout(() => {
+      setLoading(false);
+    }, 3000);
+
     const { data: sub } = supabase.auth.onAuthStateChange(async (_event, s) => {
       setSession(s);
-      
+
       if (s?.user) {
         const { data: profile } = await supabase
           .from('profiles')
@@ -48,10 +59,15 @@ export function AuthProvider({ children }) {
           .single();
         setUserRole(profile?.role || null);
       }
+      clearTimeout(timeoutId);
+      setLoading(false);
+    }).catch(() => {
+      clearTimeout(timeoutId);
       setLoading(false);
     });
 
     return () => {
+      clearTimeout(timeoutId);
       sub.subscription.unsubscribe();
     };
   }, [mounted]);
