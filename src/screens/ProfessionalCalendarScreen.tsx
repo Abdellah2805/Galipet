@@ -3,6 +3,7 @@ import {
   View, Text, StyleSheet, TouchableOpacity, ScrollView,
   Dimensions, ActivityIndicator, Modal, TextInput, Alert,
 } from 'react-native';
+import { Picker } from '@react-native-picker/picker';
 import Icon from '../components/Icon';
 import { getSupabase } from '../lib/supabase';
 import { colors, radius, spacing } from '../theme/colors';
@@ -230,18 +231,21 @@ export default function ProfessionalCalendarScreen() {
     }
   };
 
-  const renderPicker = (value: string, setValue: (v: string) => void, options: string[]) => (
-    <View style={styles.pickerWrap}>
-      {options.map((opt) => (
-        <TouchableOpacity
-          key={opt}
-          style={[styles.pickerBtn, value === opt && styles.pickerBtnActive]}
-          onPress={() => setValue(opt)}
-        >
-          <Text style={[styles.pickerText, value === opt && styles.pickerTextActive]}>{opt}</Text>
-          {value === opt && <Icon name="chevron-down" size={14} color={colors.primary} />}
-        </TouchableOpacity>
-      ))}
+  const HOURS = Array.from({ length: 24 }, (_, i) => String(i).padStart(2, '0'));
+  const MINUTES = ['00', '15', '30', '45'];
+
+  const renderTimePicker = (value: string, setValue: (v: string) => void, options: string[]) => (
+    <View style={styles.pickerBox}>
+      <Picker
+        selectedValue={value}
+        onValueChange={(itemValue) => setValue(itemValue)}
+        style={styles.picker}
+        itemStyle={styles.pickerItem}
+      >
+        {options.map((opt) => (
+          <Picker.Item key={opt} label={opt} value={opt} />
+        ))}
+      </Picker>
     </View>
   );
   const renderLegend = () => (
@@ -473,34 +477,42 @@ export default function ProfessionalCalendarScreen() {
                 onChangeText={setReason}
               />
 
-              <Text style={styles.modalLabel}>Date début</Text>
-              <TextInput
-                style={styles.modalInput}
-                placeholder="JJ/MM/AAAA"
-                value={startDate}
-                onChangeText={setStartDate}
-              />
-
-              <Text style={styles.modalLabel}>Date fin</Text>
-              <TextInput
-                style={styles.modalInput}
-                placeholder="JJ/MM/AAAA"
-                value={endDate}
-                onChangeText={setEndDate}
-              />
-
-              <Text style={styles.modalLabel}>Heure début</Text>
-              <View style={styles.timeRow}>
-                {renderPicker(startHour, setStartHour, Array.from({ length: 24 }, (_, i) => String(i).padStart(2, '0')))}
-                <Text style={styles.timeSep}>:</Text>
-                {renderPicker(startMin, setStartMin, ['00', '15', '30', '45'])}
+              {/* Dates */}
+              <View style={styles.row}>
+                <View style={styles.col}>
+                  <Text style={styles.modalLabel}>Date début</Text>
+                  <TextInput
+                    style={styles.modalInput}
+                    placeholder="JJ/MM/AAAA"
+                    value={startDate}
+                    onChangeText={setStartDate}
+                  />
+                </View>
+                <View style={styles.col}>
+                  <Text style={styles.modalLabel}>Date fin</Text>
+                  <TextInput
+                    style={styles.modalInput}
+                    placeholder="JJ/MM/AAAA"
+                    value={endDate}
+                    onChangeText={setEndDate}
+                  />
+                </View>
               </View>
 
+              {/* Heure début */}
+              <Text style={styles.modalLabel}>Heure début</Text>
+              <View style={styles.timeRow}>
+                {renderTimePicker(startHour, setStartHour, HOURS)}
+                <Text style={styles.timeSep}>:</Text>
+                {renderTimePicker(startMin, setStartMin, MINUTES)}
+              </View>
+
+              {/* Heure fin */}
               <Text style={styles.modalLabel}>Heure fin</Text>
               <View style={styles.timeRow}>
-                {renderPicker(endHour, setEndHour, Array.from({ length: 24 }, (_, i) => String(i).padStart(2, '0')))}
+                {renderTimePicker(endHour, setEndHour, HOURS)}
                 <Text style={styles.timeSep}>:</Text>
-                {renderPicker(endMin, setEndMin, ['00', '15', '30', '45'])}
+                {renderTimePicker(endMin, setEndMin, MINUTES)}
               </View>
 
               <Text style={styles.modalLabel}>Notes (optionnel)</Text>
@@ -726,37 +738,37 @@ const styles = StyleSheet.create({
     minHeight: 80,
     textAlignVertical: 'top',
   },
+  row: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  col: {
+    flex: 1,
+  },
   timeRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 10,
   },
   timeSep: { fontSize: 16, fontWeight: '700', color: colors.text },
-  pickerWrap: {
+  pickerBox: {
     flex: 1,
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 6,
-  },
-  pickerBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
     borderWidth: 1,
     borderColor: '#E8E8E8',
-    borderRadius: 10,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
+    borderRadius: 12,
     backgroundColor: '#FAFAFA',
-    minWidth: 80,
-    flex: 1,
+    overflow: 'hidden',
+    height: 48,
+    justifyContent: 'center',
   },
-  pickerBtnActive: {
-    borderColor: colors.primary,
-    backgroundColor: '#FFF5F0',
+  picker: {
+    height: 48,
+    width: '100%',
   },
-  pickerText: { fontSize: 14, color: colors.text },
-  pickerTextActive: { color: colors.primary, fontWeight: '600' },
+  pickerItem: {
+    fontSize: 15,
+    color: colors.text,
+  },
   modalSaveBtn: {
     backgroundColor: colors.primary,
     borderRadius: radius.pill,
