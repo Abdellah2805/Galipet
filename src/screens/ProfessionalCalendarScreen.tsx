@@ -262,38 +262,72 @@ export default function ProfessionalCalendarScreen() {
   );
 
   const renderDayView = () => {
-    const hours = [];
-    for (let h = 6; h <= 21; h++) {
-      for (let m = 0; m < 60; m += 30) {
-        hours.push(`${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`);
-      }
-    }
+    const startHour = 6;
+    const endHour = 21;
+    const slotHeight = 50;
+    const slotsCount = (endHour - startHour) * 2;
+    const dayBookings = getBookingsForDate(currentDate);
 
     return (
       <ScrollView style={styles.dayScroll} showsVerticalScrollIndicator={false}>
-        {hours.map((time, i) => {
-          const [h, m] = time.split(':').map(Number);
-          const slotBookings = bookings.filter(b => {
-            const d = new Date(b.starts_at);
-            return d.getHours() === h && d.getMinutes() === m;
-          });
+        <View style={{ flexDirection: 'row' }}>
+          {/* Colonne heures */}
+          <View style={{ width: 50 }}>
+            {Array.from({ length: slotsCount }, (_, i) => {
+              const h = startHour + Math.floor(i / 2);
+              const m = (i % 2) * 30;
+              return (
+                <View key={i} style={[styles.dayRow, { height: slotHeight, borderBottomWidth: 1, borderBottomColor: '#EFEFEF' }]}>
+                  <Text style={styles.dayTime}>{String(h).padStart(2, '0')}:{String(m).padStart(2, '0')}</Text>
+                </View>
+              );
+            })}
+          </View>
 
-          return (
-            <View key={i} style={styles.dayRow}>
-              <Text style={styles.dayTime}>{time}</Text>
-              <View style={styles.daySlot}>
-                {slotBookings.map((b, idx) => (
-                  <View key={idx} style={[styles.dayBooking, { backgroundColor: getStatusColor(b.status) + '20', borderLeftColor: getStatusColor(b.status) }]}>
-                    <Text style={[styles.dayBookingText, { color: getStatusColor(b.status) }]}>
-                      {(b.amount_cents / 100).toFixed(2)}€
-                    </Text>
-                  </View>
-                ))}
-                {slotBookings.length === 0 && <Text style={styles.dayEmpty}>—</Text>}
-              </View>
-            </View>
-          );
-        })}
+          {/* Colonne événements */}
+          <View style={{ flex: 1, position: 'relative' }}>
+            {Array.from({ length: slotsCount }, (_, i) => (
+              <View key={i} style={{ height: slotHeight, borderBottomWidth: 1, borderBottomColor: '#EFEFEF' }} />
+            ))}
+
+            {dayBookings.map((b, idx) => {
+              const start = new Date(b.starts_at);
+              const end = new Date(b.ends_at);
+              const startMin = (start.getHours() - startHour) * 60 + start.getMinutes();
+              const durationMin = (end.getTime() - start.getTime()) / 60000;
+              const top = (startMin / 30) * slotHeight;
+              const height = (durationMin / 30) * slotHeight;
+
+              return (
+                <View
+                  key={idx}
+                  style={[
+                    styles.dayBooking,
+                    {
+                      position: 'absolute',
+                      top,
+                      left: 4,
+                      right: 4,
+                      height: Math.max(height, 24),
+                      backgroundColor: getStatusColor(b.status) + '25',
+                      borderLeftColor: getStatusColor(b.status),
+                      borderLeftWidth: 3,
+                      borderRadius: 6,
+                      padding: 4,
+                    },
+                  ]}
+                >
+                  <Text style={[styles.dayBookingText, { color: getStatusColor(b.status), fontSize: 11 }]} numberOfLines={1}>
+                    {b.reason || (b.amount_cents > 0 ? `${(b.amount_cents / 100).toFixed(2)}€` : 'Créneau')}
+                  </Text>
+                  <Text style={{ fontSize: 9, color: getStatusColor(b.status), opacity: 0.8 }}>
+                    {String(start.getHours()).padStart(2, '0')}:{String(start.getMinutes()).padStart(2, '0')} - {String(end.getHours()).padStart(2, '0')}:{String(end.getMinutes()).padStart(2, '0')}
+                  </Text>
+                </View>
+              );
+            })}
+          </View>
+        </View>
       </ScrollView>
     );
   };
@@ -306,17 +340,19 @@ export default function ProfessionalCalendarScreen() {
       d.setDate(start.getDate() + i);
       days.push(d);
     }
-    const hours = [8, 9, 10, 11, 12, 13, 14, 15, 16, 17];
+    const startHour = 6;
+    const endHour = 21;
+    const slotHeight = 50;
+    const slotsCount = (endHour - startHour) * 2;
 
     return (
       <ScrollView style={styles.weekScroll} showsVerticalScrollIndicator={false}>
         {/* Header jours */}
-        <View style={styles.weekHeaderRow}>
-          <View style={styles.weekCorner} />
+        <View style={[styles.weekHeaderRow, { paddingLeft: 50 }]}>
           {days.map((d, i) => {
             const isToday = new Date().toDateString() === d.toDateString();
             return (
-              <View key={i} style={styles.weekDayHeader}>
+              <View key={i} style={[styles.weekDayHeader, { flex: 1 }]}>
                 <Text style={[styles.weekDayName, isToday && styles.weekDayNameToday]}>{DAY_NAMES_SHORT[i]}</Text>
                 <Text style={[styles.weekDayNum, isToday && styles.weekDayNumToday]}>{d.getDate()}</Text>
               </View>
@@ -324,25 +360,70 @@ export default function ProfessionalCalendarScreen() {
           })}
         </View>
 
-        {/* Grille heures */}
-        {hours.map((h, i) => (
-          <View key={i} style={styles.weekRow}>
-            <Text style={styles.weekHour}>{String(h).padStart(2, '0')}:00</Text>
-            {days.map((d, j) => {
-              const dayBookings = getBookingsForDate(d).filter(b => {
-                const bt = new Date(b.starts_at);
-                return bt.getHours() === h;
-              });
+        {/* Grille */}
+        <View style={{ flexDirection: 'row' }}>
+          {/* Colonne heures */}
+          <View style={{ width: 50 }}>
+            {Array.from({ length: slotsCount }, (_, i) => {
+              const h = startHour + Math.floor(i / 2);
+              const m = (i % 2) * 30;
               return (
-                <View key={j} style={styles.weekCell}>
-                  {dayBookings.map((b, idx) => (
-                    <View key={idx} style={[styles.weekBookingDot, { backgroundColor: getStatusColor(b.status) }]} />
-                  ))}
+                <View key={i} style={{ height: slotHeight, justifyContent: 'flex-start', paddingTop: 2, borderBottomWidth: 1, borderBottomColor: '#EFEFEF' }}>
+                  <Text style={{ fontSize: 10, color: '#8E8E93', textAlign: 'center' }}>{String(h).padStart(2, '0')}:{String(m).padStart(2, '0')}</Text>
                 </View>
               );
             })}
           </View>
-        ))}
+
+          {/* Colonnes jours avec événements */}
+          {days.map((d, dayIdx) => {
+            const dayBookings = getBookingsForDate(d);
+            return (
+              <View key={dayIdx} style={{ flex: 1, position: 'relative', borderLeftWidth: 1, borderLeftColor: '#EFEFEF' }}>
+                {/* Lignes de grille */}
+                {Array.from({ length: slotsCount }, (_, i) => (
+                  <View key={i} style={{ height: slotHeight, borderBottomWidth: 1, borderBottomColor: '#EFEFEF' }} />
+                ))}
+
+                {/* Événements positionnés */}
+                {dayBookings.map((b, idx) => {
+                  const start = new Date(b.starts_at);
+                  const end = new Date(b.ends_at);
+                  const startMin = (start.getHours() - startHour) * 60 + start.getMinutes();
+                  const durationMin = (end.getTime() - start.getTime()) / 60000;
+                  const top = (startMin / 30) * slotHeight;
+                  const height = (durationMin / 30) * slotHeight;
+
+                  return (
+                    <View
+                      key={idx}
+                      style={{
+                        position: 'absolute',
+                        top,
+                        left: 2,
+                        right: 2,
+                        height: Math.max(height, 20),
+                        backgroundColor: getStatusColor(b.status) + '25',
+                        borderLeftColor: getStatusColor(b.status),
+                        borderLeftWidth: 3,
+                        borderRadius: 4,
+                        padding: 2,
+                        overflow: 'hidden',
+                      }}
+                    >
+                      <Text style={{ fontSize: 9, color: getStatusColor(b.status), fontWeight: '600' }} numberOfLines={1}>
+                        {b.reason || (b.amount_cents > 0 ? `${(b.amount_cents / 100).toFixed(0)}€` : 'Créneau')}
+                      </Text>
+                      <Text style={{ fontSize: 8, color: getStatusColor(b.status), opacity: 0.8 }}>
+                        {String(start.getHours()).padStart(2, '0')}:{String(start.getMinutes()).padStart(2, '0')}
+                      </Text>
+                    </View>
+                  );
+                })}
+              </View>
+            );
+          })}
+        </View>
       </ScrollView>
     );
   };
