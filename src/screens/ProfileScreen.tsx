@@ -3,6 +3,8 @@ import { View, Text, StyleSheet, ScrollView, Pressable, TextInput } from 'react-
 import { getSupabase } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
 
+const isCompanyRole = (role: string | null) => role === 'professional' || role === 'company';
+
 const CUSTOMER_FIELDS = [
   { key: 'first_name', label: 'Prénom', icon: '👤', editable: true },
   { key: 'last_name', label: 'Nom', icon: '👤', editable: true },
@@ -106,7 +108,7 @@ export default function ProfileScreen({ navigation, onNavigate }: any) {
         console.log('Customer data fusionné:', { firstName, lastName, fullName });
       }
 
-      if (data.role === 'professional') {
+      if (isCompanyRole(data.role)) {
         const companyProfile = Array.isArray(data.company_profiles) ? data.company_profiles[0] : data.company_profiles;
         mergedData.company_name = companyProfile?.company_name || '';
         mergedData.contact_name = companyProfile?.contact_name || '';
@@ -163,7 +165,7 @@ export default function ProfileScreen({ navigation, onNavigate }: any) {
         }
       }
 
-      if (profileRole === 'professional') {
+      if (isCompanyRole(profileRole)) {
         const { error: profileError } = await supabase
           .from('profiles')
           .update({
@@ -229,7 +231,7 @@ export default function ProfileScreen({ navigation, onNavigate }: any) {
             </View>
           </View>
           <Text style={styles.userName}>
-            {profileRole === 'professional' ? userData.company_name : `${userData.first_name || ''} ${userData.last_name || ''}`.trim() || 'Utilisateur'}
+            {isCompanyRole(profileRole) ? userData.company_name : `${userData.first_name || ''} ${userData.last_name || ''}`.trim() || 'Utilisateur'}
           </Text>
         </View>
 
@@ -277,7 +279,7 @@ export default function ProfileScreen({ navigation, onNavigate }: any) {
             </View>
           ))}
 
-          {profileRole === 'professional' && COMPANY_FIELDS.map((field) => (
+          {isCompanyRole(profileRole) && COMPANY_FIELDS.map((field) => (
             <View key={field.key} style={styles.infoRow}>
               <Text style={styles.infoIcon}>{field.icon}</Text>
               <View style={styles.infoContent}>
