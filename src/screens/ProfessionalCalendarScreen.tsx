@@ -73,20 +73,47 @@ export default function ProfessionalCalendarScreen() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) { setLoading(false); return; }
 
-      const { data: company } = await supabase
-        .from('company_profiles')
-        .select('id')
-        .eq('user_id', user.id)
-        .single();
+      // Récupérer le company_profile via profiles (comme ProfileScreen)
+      const { data: profileData, error: profileError } = await supabase
+        .from('profiles')
+        .select('company_profiles(id)')
+        .eq('id', user.id)
+        .maybeSingle();
 
-      if (!company) { setLoading(false); return; }
-      setCompanyId(company.id);
+      if (profileError) {
+        console.error('Erreur fetching profile:', profileError);
+      }
+
+      let companyIdLocal: string | null = null;
+
+      if (profileData && (profileData as any).company_profiles) {
+        const cp = (profileData as any).company_profiles;
+        companyIdLocal = Array.isArray(cp) ? cp[0]?.id : cp?.id;
+      }
+
+      // Fallback : essayer directement sur company_profiles
+      if (!companyIdLocal) {
+        const { data: company } = await supabase
+          .from('company_profiles')
+          .select('id')
+          .eq('user_id', user.id)
+          .maybeSingle();
+        if (company) companyIdLocal = company.id;
+      }
+
+      if (!companyIdLocal) {
+        console.warn('Aucun company_profile trouvé pour user', user.id);
+        setLoading(false);
+        return;
+      }
+
+      setCompanyId(companyIdLocal);
 
       const { start, end } = getDateRange();
       const { data: bookingsData, error } = await supabase
         .from('bookings')
         .select('*')
-        .eq('company_profile_id', company.id)
+        .eq('company_profile_id', companyIdLocal)
         .gte('starts_at', start.toISOString())
         .lte('starts_at', end.toISOString())
         .order('starts_at', { ascending: true });
