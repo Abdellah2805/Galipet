@@ -105,7 +105,7 @@ export default function ProfileScreen({ navigation, onNavigate }: any) {
         console.log('Customer data fusionné:', { firstName, lastName, fullName });
       }
 
-      if (data.role === 'company') {
+      if (data.role === 'professional') {
         const companyProfile = Array.isArray(data.company_profiles) ? data.company_profiles[0] : data.company_profiles;
         mergedData.company_name = companyProfile?.company_name || '';
         mergedData.contact_name = companyProfile?.contact_name || '';
@@ -161,7 +161,7 @@ export default function ProfileScreen({ navigation, onNavigate }: any) {
         }
       }
 
-      if (userRole === 'company') {
+      if (userRole === 'professional') {
         const { error: profileError } = await supabase
           .from('profiles')
           .update({
@@ -184,7 +184,7 @@ export default function ProfileScreen({ navigation, onNavigate }: any) {
             contact_name: userData.contact_name,
             siret_or_id: userData.siret_or_id,
           })
-          .eq('id', session.user.id);
+          .eq('user_id', session.user.id);
 
         if (companyError) {
           console.error('Erreur update company_profiles:', companyError);
@@ -227,7 +227,7 @@ export default function ProfileScreen({ navigation, onNavigate }: any) {
             </View>
           </View>
           <Text style={styles.userName}>
-            {userRole === 'company' ? userData.company_name : `${userData.first_name || ''} ${userData.last_name || ''}`.trim() || 'Utilisateur'}
+            {userRole === 'professional' ? userData.company_name : `${userData.first_name || ''} ${userData.last_name || ''}`.trim() || 'Utilisateur'}
           </Text>
         </View>
 
@@ -275,7 +275,7 @@ export default function ProfileScreen({ navigation, onNavigate }: any) {
             </View>
           ))}
 
-          {userRole === 'company' && COMPANY_FIELDS.map((field) => (
+          {userRole === 'professional' && COMPANY_FIELDS.map((field) => (
             <View key={field.key} style={styles.infoRow}>
               <Text style={styles.infoIcon}>{field.icon}</Text>
               <View style={styles.infoContent}>
