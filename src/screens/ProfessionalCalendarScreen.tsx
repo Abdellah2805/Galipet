@@ -96,7 +96,7 @@ export default function ProfessionalCalendarScreen() {
         const { data: company } = await supabase
           .from('company_profiles')
           .select('id')
-          .eq('user_id', user.id)
+          .eq('id', user.id)
           .maybeSingle();
         if (company) companyIdLocal = company.id;
       }
@@ -242,6 +242,8 @@ export default function ProfessionalCalendarScreen() {
         status: 'personal_slot',
         amount_cents: 0,
         currency: 'EUR',
+        reason: reason.trim(),
+        notes: notes.trim() || null,
       });
 
       if (error) throw error;

@@ -188,7 +188,7 @@ export default function ProfileScreen({ navigation, onNavigate }: any) {
             contact_name: userData.contact_name,
             siret_or_id: userData.siret_or_id,
           })
-          .eq('user_id', session.user.id);
+          .eq('id', session.user.id);
 
         if (companyError) {
           console.error('Erreur update company_profiles:', companyError);

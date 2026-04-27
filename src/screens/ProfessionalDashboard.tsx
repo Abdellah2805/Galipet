@@ -51,7 +51,7 @@ export default function ProfessionalDashboard() {
       const { data: company } = await supabase
         .from('company_profiles')
         .select('id, company_name')
-        .eq('user_id', user.id)
+        .eq('id', user.id)
         .single();
 
       if (!company) { setLoading(false); return; }
