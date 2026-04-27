@@ -242,8 +242,6 @@ export default function ProfessionalCalendarScreen() {
         status: 'personal_slot',
         amount_cents: 0,
         currency: 'EUR',
-        notes: notes.trim() || null,
-        reason: reason.trim(),
       });
 
       if (error) throw error;
@@ -252,6 +250,7 @@ export default function ProfessionalCalendarScreen() {
       loadCompanyAndBookings();
       Alert.alert('Créneau réservé', 'Votre créneau personnel a été ajouté au calendrier.');
     } catch (err: any) {
+      console.error('Error saving slot:', err);
       Alert.alert('Erreur', err.message || 'Impossible de sauvegarder le créneau.');
     } finally {
       setSaving(false);
