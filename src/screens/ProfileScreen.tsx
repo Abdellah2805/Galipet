@@ -1,111 +1,207 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, Image, Pressable, TextInput } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, Pressable, TextInput } from 'react-native';
 import { getSupabase } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
-import { colors, radius, spacing } from '../theme/colors';
 
-const INFO_FIELDS = [
+const CUSTOMER_FIELDS = [
   { key: 'first_name', label: 'Prénom', icon: '👤', editable: true },
   { key: 'last_name', label: 'Nom', icon: '👤', editable: true },
   { key: 'birth_date', label: 'Date de naissance', icon: '📅', editable: true },
-  { key: 'email', label: 'Email', icon: '✉️', editable: false },
   { key: 'phone', label: 'Téléphone', icon: '📱', editable: true },
   { key: 'address', label: 'Adresse', icon: '📍', editable: true },
 ];
 
 const COMPANY_FIELDS = [
-  { key: 'company_name', label: 'Nom de l\'entreprise', icon: '🏢' },
-  { key: 'siret', label: 'SIRET', icon: '🔢' },
-  { key: 'description', label: 'Description', icon: '📝' },
+  { key: 'company_name', label: 'Nom de l\'entreprise', icon: '🏢', editable: true },
+  { key: 'contact_name', label: 'Nom du contact', icon: '👤', editable: true },
+  { key: 'siret_or_id', label: 'SIRET / Identifiant', icon: '🔢', editable: true },
+  { key: 'phone', label: 'Téléphone', icon: '📱', editable: true },
+  { key: 'address', label: 'Adresse', icon: '📍', editable: true },
 ];
 
 export default function ProfileScreen({ navigation, onNavigate }: any) {
   const { session, userRole } = useAuth();
   const supabase = getSupabase();
   const navigateFn = onNavigate || navigation?.navigate || (() => {});
+
   const [userData, setUserData] = useState<any>({
-    first_name: 'jean',
-    last_name: 'dupont',
-    birth_date: '10 mars 1988',
-    email: session?.user?.email || 'jean@example.com',
-    phone: '+212 6XX XXX XXX',
-    address: 'Cergy',
+    email: session?.user?.email || '',
+    phone: '',
+    first_name: '',
+    last_name: '',
+    birth_date: '',
+    address: '',
+    company_name: '',
+    contact_name: '',
+    siret_or_id: '',
   });
-  const [companyData, setCompanyData] = useState<any>({});
+
   const [loading, setLoading] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
+  const [saveMessage, setSaveMessage] = useState<string | null>(null);
 
   useEffect(() => {
-    loadUserData();
+    if (session?.user) {
+      loadUserData();
+    }
   }, [session]);
 
   const loadUserData = async () => {
     if (!session?.user) return;
-    
+
+    console.log('Loading profile for user ID:', session.user.id);
+
     setLoading(true);
     try {
       const { data, error } = await supabase
         .from('profiles')
-        .select('*')
+        .select('*, customer_profiles(*), company_profiles(*)')
         .eq('id', session.user.id)
-        .single();
+        .maybeSingle();
 
-      if (data) {
+      console.log('Données reçues de Supabase:', data);
+
+      if (error) {
+        console.error('Erreur loading profile:', error);
+        setLoading(false);
+        return;
+      }
+
+      if (!data) {
+        console.log('Aucune donnée trouvée - nouveau compte');
         setUserData({
-          first_name: data.first_name || 'jean',
-          last_name: data.last_name || 'dupont',
-          birth_date: data.birth_date || '10 mars 1988',
-          email: session.user.email || data.email || 'jean@example.com',
-          phone: data.phone || '+212 6XX XXX XXX',
-          address: data.address || 'Cergy',
+          email: session.user.email || '',
+          phone: '',
+          first_name: '',
+          last_name: '',
+          birth_date: '',
+          address: '',
+          company_name: '',
+          contact_name: '',
+          siret_or_id: '',
         });
+        setLoading(false);
+        return;
       }
 
-      if (userRole === 'company') {
-        const { data: compData } = await supabase
-          .from('company_profiles')
-          .select('*')
-          .eq('id', session.user.id)
-          .single();
-        
-        if (compData) {
-          setCompanyData({
-            company_name: compData.company_name || '',
-            siret: compData.siret_or_id || '',
-            description: compData.description || '',
-          });
-        }
+      const mergedData: any = {
+        email: session.user.email || data.email || '',
+        phone: data.phone || '',
+        birth_date: data.birth_date || '',
+        address: data.address || '',
+        first_name: '',
+        last_name: '',
+        company_name: '',
+        contact_name: '',
+        siret_or_id: '',
+      };
+
+      if (data.role === 'customer') {
+        const customerProfile = Array.isArray(data.customer_profiles) ? data.customer_profiles[0] : data.customer_profiles;
+        const fullName = customerProfile?.full_name || '';
+        const [firstName, lastName] = fullName.split(' ');
+        mergedData.first_name = firstName || '';
+        mergedData.last_name = lastName || '';
+        console.log('Customer data fusionné:', { firstName, lastName, fullName });
       }
+
+      if (data.role === 'company') {
+        const companyProfile = Array.isArray(data.company_profiles) ? data.company_profiles[0] : data.company_profiles;
+        mergedData.company_name = companyProfile?.company_name || '';
+        mergedData.contact_name = companyProfile?.contact_name || '';
+        mergedData.siret_or_id = companyProfile?.siret_or_id || '';
+        console.log('Company data fusionné:', mergedData);
+      }
+
+      console.log('Objet userData final:', mergedData);
+      setUserData(mergedData);
     } catch (e) {
-      console.log('Error loading data:', e);
+      console.error('Error loading data:', e);
     }
     setLoading(false);
   };
 
-  const InfoRow = ({ field, value }: { field: any; value: string }) => (
-    <View style={styles.infoRow}>
-      <Text style={styles.infoIcon}>{field.icon}</Text>
-      <View style={styles.infoContent}>
-        <Text style={styles.infoLabel}>{field.label}</Text>
-        <TextInput
-          style={[styles.infoValue, !field.editable && styles.infoValueDisabled]}
-          value={value}
-          editable={field.editable && isEditing}
-          onChangeText={(text) => setUserData({ ...userData, [field.key]: text })}
-        />
-      </View>
-    </View>
-  );
+  const handleUpdateProfile = async () => {
+    if (!session?.user) return;
 
-  const CompanyRow = ({ field, value }: { field: any; value: string }) => (
-    <View style={styles.infoRow}>
-      <Text style={styles.infoIcon}>{field.icon}</Text>
-      <View style={styles.infoContent}>
-        <Text style={styles.infoLabel}>{field.label}</Text>
-        <Text style={styles.infoValue}>{value}</Text>
-      </View>
-    </View>
-  );
+    try {
+      console.log('Sauvegarde pour user ID:', session.user.id);
+      console.log('Données à sauvegarder:', userData);
+
+      if (userRole === 'customer') {
+        const { error: profileError } = await supabase
+          .from('profiles')
+          .update({
+            phone: userData.phone || '',
+            birth_date: userData.birth_date || null,
+            address: userData.address || '',
+          })
+          .eq('id', session.user.id);
+
+        if (profileError) {
+          console.error('Erreur update profiles:', profileError);
+          setSaveMessage('Erreur lors de la sauvegarde');
+          setTimeout(() => setSaveMessage(null), 3000);
+          return;
+        }
+
+        const fullName = `${userData.first_name || ''} ${userData.last_name || ''}`.trim();
+        const { error: customerError } = await supabase
+          .from('customer_profiles')
+          .update({
+            full_name: fullName,
+          })
+          .eq('id', session.user.id);
+
+        if (customerError) {
+          console.error('Erreur update customer_profiles:', customerError);
+          setSaveMessage('Erreur lors de la sauvegarde');
+          setTimeout(() => setSaveMessage(null), 3000);
+          return;
+        }
+      }
+
+      if (userRole === 'company') {
+        const { error: profileError } = await supabase
+          .from('profiles')
+          .update({
+            phone: userData.phone || '',
+            address: userData.address || '',
+          })
+          .eq('id', session.user.id);
+
+        if (profileError) {
+          console.error('Erreur update profiles:', profileError);
+          setSaveMessage('Erreur lors de la sauvegarde');
+          setTimeout(() => setSaveMessage(null), 3000);
+          return;
+        }
+
+        const { error: companyError } = await supabase
+          .from('company_profiles')
+          .update({
+            company_name: userData.company_name,
+            contact_name: userData.contact_name,
+            siret_or_id: userData.siret_or_id,
+          })
+          .eq('id', session.user.id);
+
+        if (companyError) {
+          console.error('Erreur update company_profiles:', companyError);
+          setSaveMessage('Erreur lors de la sauvegarde');
+          setTimeout(() => setSaveMessage(null), 3000);
+          return;
+        }
+      }
+
+      setSaveMessage('Modifications enregistrées !');
+      setTimeout(() => setSaveMessage(null), 3000);
+    } catch (e) {
+      console.error('Error updating profile:', e);
+      setSaveMessage('Erreur lors de la sauvegarde');
+      setTimeout(() => setSaveMessage(null), 3000);
+    }
+  };
 
   return (
     <View style={styles.container}>
@@ -131,7 +227,7 @@ export default function ProfileScreen({ navigation, onNavigate }: any) {
             </View>
           </View>
           <Text style={styles.userName}>
-            {userData.first_name} {userData.last_name}
+            {userRole === 'company' ? userData.company_name : `${userData.first_name || ''} ${userData.last_name || ''}`.trim() || 'Utilisateur'}
           </Text>
         </View>
 
@@ -141,46 +237,58 @@ export default function ProfileScreen({ navigation, onNavigate }: any) {
             <Text style={styles.cardTitleIcon}>👤</Text>
             <Text style={styles.cardTitle}>Informations personnelles</Text>
           </View>
-          <Pressable style={styles.editBtn} onPress={() => setIsEditing(!isEditing)}>
+          <Pressable 
+            style={styles.editBtn} 
+            onPress={() => {
+              if (isEditing) {
+                handleUpdateProfile();
+              }
+              setIsEditing(!isEditing);
+            }}
+          >
             <Text style={styles.editIcon}>{isEditing ? '💾' : '✏️'}</Text>
           </Pressable>
         </View>
 
+        {/* SAVE MESSAGE */}
+        {saveMessage && (
+          <View style={styles.saveMessageContainer}>
+            <Text style={styles.saveMessageText}>{saveMessage}</Text>
+          </View>
+        )}
+
         {/* INFO FIELDS */}
         <View style={styles.infoCard}>
-          <View style={styles.infoGrid}>
-            <View style={styles.infoGridItem}>
-              <Text style={styles.infoLabel}>Prénom</Text>
-              <TextInput
-                style={styles.infoValue}
-                value={userData.first_name}
-                editable={isEditing}
-                onChangeText={(text) => setUserData({ ...userData, first_name: text })}
-              />
+          {console.log('Rendu - userData:', userData)}
+          {userRole === 'customer' && CUSTOMER_FIELDS.map((field) => (
+            <View key={field.key} style={styles.infoRow}>
+              <Text style={styles.infoIcon}>{field.icon}</Text>
+              <View style={styles.infoContent}>
+                <Text style={styles.infoLabel}>{field.label}</Text>
+                <TextInput
+                  style={[styles.infoValue, !isEditing && styles.infoValueDisabled]}
+                  value={userData[field.key] || ''}
+                  editable={isEditing}
+                  onChangeText={(text) => setUserData({ ...userData, [field.key]: text })}
+                />
+              </View>
             </View>
-            <View style={styles.infoGridItem}>
-              <Text style={styles.infoLabel}>Nom</Text>
-              <TextInput
-                style={styles.infoValue}
-                value={userData.last_name}
-                editable={isEditing}
-                onChangeText={(text) => setUserData({ ...userData, last_name: text })}
-              />
-            </View>
-          </View>
+          ))}
 
-          <View style={styles.infoRow}>
-            <Text style={styles.infoIcon}>📅</Text>
-            <View style={styles.infoContent}>
-              <Text style={styles.infoLabel}>Date de naissance</Text>
-              <TextInput
-                style={styles.infoValue}
-                value={userData.birth_date}
-                editable={isEditing}
-                onChangeText={(text) => setUserData({ ...userData, birth_date: text })}
-              />
+          {userRole === 'company' && COMPANY_FIELDS.map((field) => (
+            <View key={field.key} style={styles.infoRow}>
+              <Text style={styles.infoIcon}>{field.icon}</Text>
+              <View style={styles.infoContent}>
+                <Text style={styles.infoLabel}>{field.label}</Text>
+                <TextInput
+                  style={[styles.infoValue, !isEditing && styles.infoValueDisabled]}
+                  value={userData[field.key] || ''}
+                  editable={isEditing}
+                  onChangeText={(text) => setUserData({ ...userData, [field.key]: text })}
+                />
+              </View>
             </View>
-          </View>
+          ))}
 
           <View style={styles.infoRow}>
             <Text style={styles.infoIcon}>✉️</Text>
@@ -189,61 +297,7 @@ export default function ProfileScreen({ navigation, onNavigate }: any) {
               <Text style={styles.infoValueDisabled}>{userData.email}</Text>
             </View>
           </View>
-
-          <View style={styles.infoRow}>
-            <Text style={styles.infoIcon}>📱</Text>
-            <View style={styles.infoContent}>
-              <Text style={styles.infoLabel}>Téléphone</Text>
-              <TextInput
-                style={styles.infoValue}
-                value={userData.phone}
-                editable={isEditing}
-                onChangeText={(text) => setUserData({ ...userData, phone: text })}
-              />
-            </View>
-          </View>
-
-          <View style={styles.infoRow}>
-            <Text style={styles.infoIcon}>📍</Text>
-            <View style={styles.infoContent}>
-              <Text style={styles.infoLabel}>Adresse</Text>
-              <TextInput
-                style={styles.infoValue}
-                value={userData.address}
-                editable={isEditing}
-                onChangeText={(text) => setUserData({ ...userData, address: text })}
-              />
-            </View>
-          </View>
         </View>
-
-        {/* COMPANY INFO (if company) */}
-        {userRole === 'company' && (
-          <>
-            <View style={[styles.infoCard, styles.cardTitleRow]}>
-              <Text style={styles.cardTitleIcon}>🏢</Text>
-              <Text style={styles.cardTitle}>Informations entreprise</Text>
-            </View>
-
-            <View style={styles.infoCard}>
-              <View style={styles.infoRow}>
-                <Text style={styles.infoIcon}>🏢</Text>
-                <View style={styles.infoContent}>
-                  <Text style={styles.infoLabel}>Nom de l'entreprise</Text>
-                  <Text style={styles.infoValue}>{companyData.company_name || 'Non défini'}</Text>
-                </View>
-              </View>
-
-              <View style={styles.infoRow}>
-                <Text style={styles.infoIcon}>🔢</Text>
-                <View style={styles.infoContent}>
-                  <Text style={styles.infoLabel}>SIRET</Text>
-                  <Text style={styles.infoValue}>{companyData.siret || 'Non défini'}</Text>
-                </View>
-              </View>
-            </View>
-          </>
-        )}
 
         {/* LOGOUT */}
         <Pressable style={styles.logoutBtn} onPress={() => supabase?.auth?.signOut()}>
@@ -252,8 +306,7 @@ export default function ProfileScreen({ navigation, onNavigate }: any) {
 
         <View style={styles.bottomSpacer} />
       </ScrollView>
-
-      </View>
+    </View>
   );
 }
 
@@ -288,14 +341,16 @@ const styles = StyleSheet.create({
   editIcon: { fontSize: 18 },
   
   // INFO FIELDS
-  infoGrid: { flexDirection: 'row', gap: 12, marginBottom: 16 },
-  infoGridItem: { flex: 1 },
   infoRow: { flexDirection: 'row', alignItems: 'center', gap: 12, marginTop: 16 },
   infoIcon: { fontSize: 18, width: 24 },
   infoContent: { flex: 1 },
   infoLabel: { fontSize: 12, color: '#6B6660', marginBottom: 4 },
   infoValue: { fontSize: 16, color: '#2E2A26', fontWeight: '500', borderBottomWidth: 1, borderBottomColor: '#EADBC8', paddingBottom: 4 },
   infoValueDisabled: { fontSize: 16, color: '#2E2A26', fontWeight: '500' },
+  
+  // SAVE MESSAGE
+  saveMessageContainer: { backgroundColor: '#27AE60', marginHorizontal: 16, marginTop: 8, borderRadius: 8, padding: 12, alignItems: 'center' },
+  saveMessageText: { fontSize: 14, fontWeight: '600', color: '#FFF' },
   
   // LOGOUT
   logoutBtn: { backgroundColor: '#FFF', marginHorizontal: 16, marginTop: 24, borderRadius: 16, padding: 16, alignItems: 'center', borderWidth: 1, borderColor: '#C0392B' },

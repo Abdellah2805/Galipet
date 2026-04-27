@@ -4,10 +4,11 @@ import { ActivityIndicator, View } from 'react-native';
 import { useAuth } from '../context/AuthContext';
 import AuthNavigator from './AuthNavigator';
 import AppNavigator from './AppNavigator';
+import ProfessionalNavigator from './ProfessionalNavigator';
 import { colors } from '../theme/colors';
 
 export default function RootNavigator() {
-  const { session, loading } = useAuth();
+  const { session, loading, userRole } = useAuth();
 
   if (loading) {
     return (
@@ -20,7 +21,11 @@ export default function RootNavigator() {
   return (
     <NavigationIndependentTree>
       <NavigationContainer>
-        {session ? <AppNavigator /> : <AuthNavigator />}
+        {session ? (
+          userRole === 'professional' || userRole === 'company' ? <ProfessionalNavigator /> : <AppNavigator />
+        ) : (
+          <AuthNavigator />
+        )}
       </NavigationContainer>
     </NavigationIndependentTree>
   );

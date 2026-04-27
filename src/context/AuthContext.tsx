@@ -33,6 +33,8 @@ export function AuthProvider({ children }) {
           .eq('id', s.user.id)
           .single();
         setUserRole(profile?.role || null);
+      } else {
+        setUserRole(null);
       }
     });
 
@@ -48,7 +50,10 @@ export function AuthProvider({ children }) {
       }
       setLoading(false);
     });
-    return () => sub.subscription.unsubscribe();
+
+    return () => {
+      sub.subscription.unsubscribe();
+    };
   }, [mounted]);
 
   return (

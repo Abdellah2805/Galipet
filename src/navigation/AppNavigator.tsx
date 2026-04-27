@@ -8,6 +8,7 @@ import PetProfileScreen from '../screens/PetProfileScreen';
 import * as ImagePicker from 'expo-image-picker';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { Picker } from '@react-native-picker/picker';
+import { useAuth } from '../context/AuthContext';
 
 const SERVICE_CATEGORIES = [
   { id: '1', title: 'Santé', subtitle: 'Vétérinaires & urgences', icon: 'medical', color: '#D4663A', bg: '#F5E6E0', route: '/services/sante' },
@@ -133,7 +134,9 @@ const [animalVaccinations, setAnimalVaccinations] = useState('');
 const [selectedPersonalityTags, setSelectedPersonalityTags] = useState<string[]>([]);
 const [userPets, setUserPets] = useState<any[]>([]);
 const [isLoadingPets, setIsLoadingPets] = useState(false);
+const [firstName, setFirstName] = useState('');
 const supabase = getSupabase();
+const { session } = useAuth();
 
 const personalityTags = ['Joueur', 'Calme', 'Affectueux', 'Énergique', 'Câlin', 'Indépendant', 'Sociable', 'Curieux', 'Gourmand', 'Protecteur'];
 
@@ -173,6 +176,29 @@ useEffect(() => {
     fetchUserPets();
   }
 }, [currentTab]);
+
+useEffect(() => {
+  if (session?.user) {
+    loadUserName();
+  }
+}, [session]);
+
+const loadUserName = async () => {
+  try {
+    const { data } = await supabase
+      .from('customer_profiles')
+      .select('full_name')
+      .eq('id', session.user.id)
+      .maybeSingle();
+
+    if (data?.full_name) {
+      const name = data.full_name.split(' ')[0];
+      setFirstName(name.charAt(0).toUpperCase() + name.slice(1).toLowerCase());
+    }
+  } catch (error) {
+    console.error('Error loading user name:', error);
+  }
+};
 
 const fetchUserPets = async () => {
   try {
@@ -777,7 +803,7 @@ const handleCreatePet = async () => {
 
         {/* SALUTATION */}
         <View style={styles.salutation}>
-          <Text style={styles.salutationText}>Bonjour jean !</Text>
+          <Text style={styles.salutationText}>Bonjour {firstName ? firstName : ''} !</Text>
           <Text style={styles.salutationSubtext}>Que cherchez-vous aujourd'hui ?</Text>
         </View>
 

@@ -27,12 +27,12 @@ export default function RegisterCompanyScreen() {
     const userId = data.user?.id;
     if (userId) {
       const { error: pErr } = await supabase.from('profiles').insert({
-        id: userId, email, role: 'company', phone,
+        id: userId, email, role: 'professional', phone,
       });
       if (pErr) { setLoading(false); return Alert.alert('Profil', pErr.message); }
 
       const { error: cErr } = await supabase.from('company_profiles').insert({
-        id: userId, company_name, contact_name, siret_or_id,
+        user_id: userId, company_name, contact_name, siret_or_id,
       });
       if (cErr) { setLoading(false); return Alert.alert('Profil entreprise', cErr.message); }
     }
