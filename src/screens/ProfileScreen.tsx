@@ -39,6 +39,7 @@ export default function ProfileScreen({ navigation, onNavigate }: any) {
   const [loading, setLoading] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
   const [saveMessage, setSaveMessage] = useState<string | null>(null);
+  const [profileRole, setProfileRole] = useState<string | null>(null);
 
   useEffect(() => {
     if (session?.user) {
@@ -115,6 +116,7 @@ export default function ProfileScreen({ navigation, onNavigate }: any) {
 
       console.log('Objet userData final:', mergedData);
       setUserData(mergedData);
+      setProfileRole(data?.role || null);
     } catch (e) {
       console.error('Error loading data:', e);
     }
@@ -128,7 +130,7 @@ export default function ProfileScreen({ navigation, onNavigate }: any) {
       console.log('Sauvegarde pour user ID:', session.user.id);
       console.log('Données à sauvegarder:', userData);
 
-      if (userRole === 'customer') {
+      if (profileRole === 'customer') {
         const { error: profileError } = await supabase
           .from('profiles')
           .update({
@@ -161,7 +163,7 @@ export default function ProfileScreen({ navigation, onNavigate }: any) {
         }
       }
 
-      if (userRole === 'professional') {
+      if (profileRole === 'professional') {
         const { error: profileError } = await supabase
           .from('profiles')
           .update({
@@ -227,7 +229,7 @@ export default function ProfileScreen({ navigation, onNavigate }: any) {
             </View>
           </View>
           <Text style={styles.userName}>
-            {userRole === 'professional' ? userData.company_name : `${userData.first_name || ''} ${userData.last_name || ''}`.trim() || 'Utilisateur'}
+            {profileRole === 'professional' ? userData.company_name : `${userData.first_name || ''} ${userData.last_name || ''}`.trim() || 'Utilisateur'}
           </Text>
         </View>
 
@@ -260,7 +262,7 @@ export default function ProfileScreen({ navigation, onNavigate }: any) {
         {/* INFO FIELDS */}
         <View style={styles.infoCard}>
           {console.log('Rendu - userData:', userData)}
-          {userRole === 'customer' && CUSTOMER_FIELDS.map((field) => (
+          {profileRole === 'customer' && CUSTOMER_FIELDS.map((field) => (
             <View key={field.key} style={styles.infoRow}>
               <Text style={styles.infoIcon}>{field.icon}</Text>
               <View style={styles.infoContent}>
@@ -275,7 +277,7 @@ export default function ProfileScreen({ navigation, onNavigate }: any) {
             </View>
           ))}
 
-          {userRole === 'professional' && COMPANY_FIELDS.map((field) => (
+          {profileRole === 'professional' && COMPANY_FIELDS.map((field) => (
             <View key={field.key} style={styles.infoRow}>
               <Text style={styles.infoIcon}>{field.icon}</Text>
               <View style={styles.infoContent}>
