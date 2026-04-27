@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, ViewStyle } from 'react-native';
-import Svg, { Path, G, Circle, Rect, Line, Polyline, Polygon } from 'react-native-svg';
+import Svg, { Path, G, Circle, Rect, Line, Polyline, Polygon, Ellipse } from 'react-native-svg';
 
 // Icon name type based on all used icons in the app
 type IconName =
