@@ -13,7 +13,7 @@ import { getSupabase } from '../lib/supabase';
 import { colors, radius, spacing } from '../theme/colors';
 import { useDashboardBookings } from '../hooks/useSupabase';
 
-const { width } = Dimensions.get('window');
+// Dimensions.get(.window.) déplacé dans le composant (SSR-safe)
 
 interface Booking {
   id: string;
@@ -33,12 +33,22 @@ const PERIOD_LABELS: Record<string, string> = {
 };
 
 export default function ProfessionalDashboard() {
-  const [period, setPeriod] = useState('Semaine');
+  const [period, setPeriod] = useState("Semaine");
   const [companyId, setCompanyId] = useState<string | null>(null);
-  const [companyName, setCompanyName] = useState('');
+  const [companyName, setCompanyName] = useState("");
   const [isLoadingCompany, setIsLoadingCompany] = useState(true);
-
+  const [width, setWidth] = useState(0);
   const { data: bookings, isLoading: isLoadingBookings, mutate: mutateBookings } = useDashboardBookings(companyId, period);
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      setWidth(Dimensions.get("window").width);
+      const subscription = Dimensions.addEventListener("change", ({ window: w }) => {
+        setWidth(w.width);
+      });
+      return () => subscription?.remove();
+    }
+  }, []);
 
   // Load company info once on mount
   useEffect(() => {
@@ -368,7 +378,8 @@ const styles = StyleSheet.create({
     marginTop: 16,
   },
   kpiCard: {
-    width: (width - 48) / 2,
+    flex: 1,
+    maxWidth: "50%",
     backgroundColor: '#fff',
     borderRadius: radius.lg,
     padding: 14,

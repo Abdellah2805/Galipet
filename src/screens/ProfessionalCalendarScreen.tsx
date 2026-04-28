@@ -9,7 +9,7 @@ import { getSupabase } from '../lib/supabase';
 import { useBookings } from '../hooks/useSupabase';
 import { colors, radius, spacing } from '../theme/colors';
 
-const { width } = Dimensions.get('window');
+// Dimensions.get(.window.) déplacé dans le composant (SSR-safe)
 
 interface Booking {
   id: string;
@@ -45,10 +45,21 @@ const DAY_NAMES_SHORT = ['L', 'M', 'M', 'J', 'V', 'S', 'D'];
 const DAY_NAMES_FULL = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi', 'Dimanche'];
 
 export default function ProfessionalCalendarScreen() {
-  const [viewMode, setViewMode] = useState<ViewMode>('Semaine');
+  const [viewMode, setViewMode] = useState<ViewMode>("Semaine");
   const [currentDate, setCurrentDate] = useState(new Date());
   const [companyId, setCompanyId] = useState<string | null>(null);
+  const [width, setWidth] = useState(0);
   const { data: bookings, isLoading, mutate } = useBookings(companyId, currentDate, viewMode);
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      setWidth(Dimensions.get("window").width);
+      const subscription = Dimensions.addEventListener("change", ({ window: w }) => {
+        setWidth(w.width);
+      });
+      return () => subscription?.remove();
+    }
+  }, []);
 
   // Modal state
   const [showModal, setShowModal] = useState(false);
@@ -636,9 +647,10 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   headerIconCircle: {
+    justifyContent: 'center',
     width: 36, height: 36, borderRadius: 18,
     backgroundColor: 'rgba(255,255,255,0.25)',
-    alignItems: 'center', justifyContent: 'center',
+    alignItems: 'center',
   },
   headerLogo: { fontSize: 22, fontWeight: '700', color: '#fff', fontStyle: 'italic' },
   headerLogoAccent: { color: '#fff' },
@@ -665,7 +677,7 @@ const styles = StyleSheet.create({
   },
   toggleBtn: {
     flex: 1, paddingVertical: 8,
-    alignItems: 'center', borderRadius: radius.pill,
+    alignItems: 'center',
   },
   toggleBtnActive: { backgroundColor: '#fff' },
   toggleText: { color: 'rgba(255,255,255,0.8)', fontWeight: '600', fontSize: 13 },
@@ -689,7 +701,7 @@ const styles = StyleSheet.create({
   },
   legendGrid: {
     flexDirection: 'row', flexWrap: 'wrap',
-    justifyContent: 'center', gap: 8,
+    justifyContent: 'space-between',
   },
   legendItem: { flexDirection: 'row', alignItems: 'center', gap: 4 },
   legendDot: { width: 10, height: 10, borderRadius: 3 },
@@ -755,13 +767,16 @@ const styles = StyleSheet.create({
     flexDirection: 'row', flexWrap: 'wrap',
   },
   monthCellEmpty: {
-    width: (width - 24) / 7, height: (width - 24) / 7 + 6,
+    width: "100%", height: "100%",
   },
   monthCell: {
-    width: (width - 24) / 7, height: (width - 24) / 7 + 6,
-    borderWidth: 1, borderColor: '#EFEFEF',
-    alignItems: 'center', justifyContent: 'center',
+    aspectRatio: 1,
+    borderWidth: 1, borderColor: "#EFEFEF",
+    alignItems: 'center',
     paddingVertical: 6,
+    justifyContent: 'space-between',
+    flex: 1,
+    maxWidth: "100%",
   },
   monthCellToday: {
     borderColor: '#E87A5D', borderWidth: 2,
@@ -777,7 +792,7 @@ const styles = StyleSheet.create({
   modalOverlay: {
     flex: 1,
     backgroundColor: 'rgba(0,0,0,0.4)',
-    justifyContent: 'flex-end',
+    justifyContent: 'space-between',
   },
   modalContent: {
     backgroundColor: '#fff',
@@ -837,7 +852,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#FAFAFA',
     overflow: 'hidden',
     height: 48,
-    justifyContent: 'center',
+    justifyContent: 'space-between',
   },
   picker: {
     height: 48,
