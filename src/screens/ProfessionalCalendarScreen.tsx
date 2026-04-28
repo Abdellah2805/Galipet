@@ -6,6 +6,7 @@ import {
 import { Picker } from '@react-native-picker/picker';
 import Icon from '../components/Icon';
 import { getSupabase } from '../lib/supabase';
+import { useBookings } from '../hooks/useSupabase';
 import { colors, radius, spacing } from '../theme/colors';
 
 const { width } = Dimensions.get('window');
@@ -46,9 +47,8 @@ const DAY_NAMES_FULL = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Same
 export default function ProfessionalCalendarScreen() {
   const [viewMode, setViewMode] = useState<ViewMode>('Semaine');
   const [currentDate, setCurrentDate] = useState(new Date());
-  const [bookings, setBookings] = useState<Booking[]>([]);
-  const [loading, setLoading] = useState(true);
   const [companyId, setCompanyId] = useState<string | null>(null);
+  const { data: bookings, isLoading, mutate } = useBookings(companyId, currentDate, viewMode);
 
   // Modal state
   const [showModal, setShowModal] = useState(false);
@@ -62,36 +62,25 @@ export default function ProfessionalCalendarScreen() {
   const [notes, setNotes] = useState('');
   const [saving, setSaving] = useState(false);
 
+  // Fetch companyId on mount
   useEffect(() => {
-    loadCompanyAndBookings();
-  }, [currentDate, viewMode]);
-
-  const loadCompanyAndBookings = async () => {
-    try {
-      setLoading(true);
+    const fetchCompanyId = async () => {
       const supabase = getSupabase();
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) { setLoading(false); return; }
+      if (!user) return;
 
-      // Récupérer le company_profile via profiles (comme ProfileScreen)
-      const { data: profileData, error: profileError } = await supabase
+      const { data: profileData } = await supabase
         .from('profiles')
         .select('company_profiles(id)')
         .eq('id', user.id)
         .maybeSingle();
 
-      if (profileError) {
-        console.error('Erreur fetching profile:', profileError);
-      }
-
       let companyIdLocal: string | null = null;
-
       if (profileData && (profileData as any).company_profiles) {
         const cp = (profileData as any).company_profiles;
         companyIdLocal = Array.isArray(cp) ? cp[0]?.id : cp?.id;
       }
 
-      // Fallback : essayer directement sur company_profiles
       if (!companyIdLocal) {
         const { data: company } = await supabase
           .from('company_profiles')
@@ -101,31 +90,11 @@ export default function ProfessionalCalendarScreen() {
         if (company) companyIdLocal = company.id;
       }
 
-      if (!companyIdLocal) {
-        console.warn('Aucun company_profile trouvé pour user', user.id);
-        setLoading(false);
-        return;
-      }
-
       setCompanyId(companyIdLocal);
+    };
 
-      const { start, end } = getDateRange();
-      const { data: bookingsData, error } = await supabase
-        .from('bookings')
-        .select('*')
-        .eq('company_profile_id', companyIdLocal)
-        .gte('starts_at', start.toISOString())
-        .lte('starts_at', end.toISOString())
-        .order('starts_at', { ascending: true });
-
-      if (error) throw error;
-      setBookings(bookingsData || []);
-    } catch (err) {
-      console.error('Error fetching calendar bookings:', err);
-    } finally {
-      setLoading(false);
-    }
-  };
+    fetchCompanyId();
+  }, []);
 
   const getDateRange = () => {
     const start = new Date(currentDate);
@@ -189,14 +158,14 @@ export default function ProfessionalCalendarScreen() {
     }
   };
 
-  const getBookingsForDate = (date: Date) => {
-    return bookings.filter(b => {
-      const d = new Date(b.starts_at);
-      return d.getDate() === date.getDate() &&
-             d.getMonth() === date.getMonth() &&
-             d.getFullYear() === date.getFullYear();
-    });
-  };
+   const getBookingsForDate = (date: Date) => {
+     return (bookings || []).filter(b => {
+       const d = new Date(b.starts_at);
+       return d.getDate() === date.getDate() &&
+              d.getMonth() === date.getMonth() &&
+              d.getFullYear() === date.getFullYear();
+     });
+   };
 
   const openModal = () => {
     const today = new Date();
@@ -246,11 +215,11 @@ export default function ProfessionalCalendarScreen() {
         notes: notes.trim() || null,
       });
 
-      if (error) throw error;
+       if (error) throw error;
 
-      setShowModal(false);
-      loadCompanyAndBookings();
-      Alert.alert('Créneau réservé', 'Votre créneau personnel a été ajouté au calendrier.');
+       setShowModal(false);
+       mutate();
+       Alert.alert('Créneau réservé', 'Votre créneau personnel a été ajouté au calendrier.');
     } catch (err: any) {
       console.error('Error saving slot:', err);
       Alert.alert('Erreur', err.message || 'Impossible de sauvegarder le créneau.');
@@ -554,7 +523,7 @@ export default function ProfessionalCalendarScreen() {
       {renderLegend()}
 
       {/* CONTENT */}
-      {loading ? (
+      {isLoading ? (
         <View style={styles.center}>
           <ActivityIndicator size="large" color={colors.primary} />
         </View>

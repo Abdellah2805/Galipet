@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, TouchableOpacity, Image, ScrollView, ActivityIn
 import Icon from '../components/Icon';
 import { colors, spacing } from '../theme/colors';
 import { getSupabase } from '../lib/supabase';
+import { usePetPhotos } from '../hooks/useSupabase';
 import * as ImagePicker from 'expo-image-picker';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { Picker } from '@react-native-picker/picker';
@@ -39,8 +40,7 @@ interface PetProfileScreenProps {
 }
 
 export default function PetProfileScreen({ animalData, onNavigate, onAddAnother, onUpdatePet, onDeletePet }: PetProfileScreenProps) {
-  const [galleryPhotos, setGalleryPhotos] = useState<any[]>([]);
-  const [isLoadingGallery, setIsLoadingGallery] = useState(false);
+  const { data: galleryPhotos, isLoading: isLoadingGallery, mutate: mutatePhotos } = usePetPhotos(animalData.id);
   const [activeTab, setActiveTab] = useState<'preview' | 'profile'>('preview');
   const [isEditModalVisible, setIsEditModalVisible] = useState(false);
   const [editingSection, setEditingSection] = useState<'basic' | 'health' | null>(null);
@@ -51,31 +51,9 @@ export default function PetProfileScreen({ animalData, onNavigate, onAddAnother,
   const supabase = getSupabase();
 
   useEffect(() => {
-    fetchGalleryPhotos();
-  }, [animalData.id]);
-
-  useEffect(() => {
     setLocalPetData(animalData);
     setEditedPet(animalData);
   }, [animalData]);
-
-  const fetchGalleryPhotos = async () => {
-    try {
-      setIsLoadingGallery(true);
-      const { data, error } = await supabase
-        .from('pet_photos')
-        .select('*')
-        .eq('pet_id', animalData.id)
-        .order('created_at', { ascending: false });
-      
-      if (error) throw error;
-      setGalleryPhotos(data || []);
-    } catch (error) {
-      console.error('Error fetching gallery photos', error);
-    } finally {
-      setIsLoadingGallery(false);
-    }
-  };
 
   const pickGalleryImage = async () => {
     try {
@@ -118,7 +96,7 @@ export default function PetProfileScreen({ animalData, onNavigate, onAddAnother,
 
       if (insertError) throw insertError;
 
-      await fetchGalleryPhotos();
+      mutatePhotos();
     } catch (error) {
       console.error('Error uploading gallery photo', error);
       Alert.alert('Erreur', 'Erreur lors du téléchargement de la photo');
@@ -446,22 +424,24 @@ export default function PetProfileScreen({ animalData, onNavigate, onAddAnother,
             <View style={styles.galleryContainer}>
               <Text style={styles.sectionTitle}>Galerie photos</Text>
               <View style={styles.galleryGrid}>
-                {galleryPhotos.map((photo) => (
-                  <View key={photo.id} style={styles.galleryPhoto}>
-                    {photo.photo_url ? (
-                      <Image 
-                        source={{ uri: photo.photo_url }} 
-                        style={styles.galleryPhotoImage}
-                        resizeMode="cover"
-                      />
-                    ) : (
-                      <View style={styles.galleryPhotoPlaceholder}>
-                        <Icon name="image-outline" size={32} color="#ccc" />
-                      </View>
-                    )}
-                  </View>
-                ))}
-                {galleryPhotos.length < 8 && (
+                {(galleryPhotos || []).map((photo) => {
+                  return (
+                    <View key={photo.id} style={styles.galleryPhoto}>
+                      {photo.photo_url ? (
+                        <Image 
+                          source={{ uri: photo.photo_url }} 
+                          style={styles.galleryPhotoImage}
+                          resizeMode="cover"
+                        />
+                      ) : (
+                        <View style={styles.galleryPhotoPlaceholder}>
+                          <Icon name="image-outline" size={32} color="#ccc" />
+                        </View>
+                      )}
+                    </View>
+                  );
+                })}
+                {(galleryPhotos || []).length < 8 && (
                   <TouchableOpacity style={styles.addPhotoButton} onPress={pickGalleryImage} activeOpacity={0.7}>
                     <View style={styles.addPhotoButtonInner}>
                       <Icon name="add" size={24} color="#FF5722" />

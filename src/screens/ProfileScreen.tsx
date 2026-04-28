@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { View, Text, StyleSheet, ScrollView, Pressable, TextInput } from 'react-native';
 import { getSupabase } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
+import { useProfile } from '../hooks/useSupabase';
 
 const isCompanyRole = (role: string | null) => role === 'professional' || role === 'company';
 
@@ -26,119 +27,90 @@ export default function ProfileScreen({ navigation, onNavigate }: any) {
   const supabase = getSupabase();
   const navigateFn = onNavigate || navigation?.navigate || (() => {});
 
-  const [userData, setUserData] = useState<any>({
-    email: session?.user?.email || '',
-    phone: '',
-    first_name: '',
-    last_name: '',
-    birth_date: '',
-    address: '',
-    company_name: '',
-    contact_name: '',
-    siret_or_id: '',
-  });
+  const { data: profileData, isLoading, mutate: mutateProfile } = useProfile(session?.user?.id);
 
-  const [loading, setLoading] = useState(true);
+  // Transform profileData into userData shape (read-only)
+  const userData = useMemo(() => {
+    if (!profileData) {
+      return {
+        email: session?.user?.email || '',
+        phone: '',
+        first_name: '',
+        last_name: '',
+        birth_date: '',
+        address: '',
+        company_name: '',
+        contact_name: '',
+        siret_or_id: '',
+      };
+    }
+
+    const merged: any = {
+      email: session?.user?.email || profileData.email || '',
+      phone: profileData.phone || '',
+      birth_date: profileData.birth_date || '',
+      address: profileData.address || '',
+      first_name: '',
+      last_name: '',
+      company_name: '',
+      contact_name: '',
+      siret_or_id: '',
+    };
+
+    if (profileData.role === 'customer') {
+      const customerProfile = Array.isArray(profileData.customer_profiles)
+        ? profileData.customer_profiles[0]
+        : profileData.customer_profiles;
+      const fullName = customerProfile?.full_name || '';
+      const [firstName, ...lastNameParts] = fullName.split(' ');
+      merged.first_name = firstName || '';
+      merged.last_name = lastNameParts.join(' ') || '';
+    }
+
+    if (isCompanyRole(profileData.role)) {
+      const companyProfile = Array.isArray(profileData.company_profiles)
+        ? profileData.company_profiles[0]
+        : profileData.company_profiles;
+      merged.company_name = companyProfile?.company_name || '';
+      merged.contact_name = companyProfile?.contact_name || '';
+      merged.siret_or_id = companyProfile?.siret_or_id || '';
+    }
+
+    return merged;
+  }, [profileData, session?.user?.email]);
+
+  // Local editable state
+  const [editData, setEditData] = useState(userData);
+
+  // Sync editData when userData changes (profile loaded)
+  useEffect(() => {
+    setEditData(userData);
+  }, [userData]);
+
   const [isEditing, setIsEditing] = useState(false);
   const [saveMessage, setSaveMessage] = useState<string | null>(null);
   const [profileRole, setProfileRole] = useState<string | null>(null);
 
   useEffect(() => {
-    if (session?.user) {
-      loadUserData();
+    if (profileData) {
+      setProfileRole(profileData.role || null);
     }
-  }, [session]);
-
-  const loadUserData = async () => {
-    if (!session?.user) return;
-
-    console.log('Loading profile for user ID:', session.user.id);
-
-    setLoading(true);
-    try {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('*, customer_profiles(*), company_profiles(*)')
-        .eq('id', session.user.id)
-        .maybeSingle();
-
-      console.log('Données reçues de Supabase:', data);
-
-      if (error) {
-        console.error('Erreur loading profile:', error);
-        setLoading(false);
-        return;
-      }
-
-      if (!data) {
-        console.log('Aucune donnée trouvée - nouveau compte');
-        setUserData({
-          email: session.user.email || '',
-          phone: '',
-          first_name: '',
-          last_name: '',
-          birth_date: '',
-          address: '',
-          company_name: '',
-          contact_name: '',
-          siret_or_id: '',
-        });
-        setLoading(false);
-        return;
-      }
-
-      const mergedData: any = {
-        email: session.user.email || data.email || '',
-        phone: data.phone || '',
-        birth_date: data.birth_date || '',
-        address: data.address || '',
-        first_name: '',
-        last_name: '',
-        company_name: '',
-        contact_name: '',
-        siret_or_id: '',
-      };
-
-      if (data.role === 'customer') {
-        const customerProfile = Array.isArray(data.customer_profiles) ? data.customer_profiles[0] : data.customer_profiles;
-        const fullName = customerProfile?.full_name || '';
-        const [firstName, lastName] = fullName.split(' ');
-        mergedData.first_name = firstName || '';
-        mergedData.last_name = lastName || '';
-        console.log('Customer data fusionné:', { firstName, lastName, fullName });
-      }
-
-      if (isCompanyRole(data.role)) {
-        const companyProfile = Array.isArray(data.company_profiles) ? data.company_profiles[0] : data.company_profiles;
-        mergedData.company_name = companyProfile?.company_name || '';
-        mergedData.contact_name = companyProfile?.contact_name || '';
-        mergedData.siret_or_id = companyProfile?.siret_or_id || '';
-        console.log('Company data fusionné:', mergedData);
-      }
-
-      console.log('Objet userData final:', mergedData);
-      setUserData(mergedData);
-      setProfileRole(data?.role || null);
-    } catch (e) {
-      console.error('Error loading data:', e);
-    }
-    setLoading(false);
-  };
+  }, [profileData]);
 
   const handleUpdateProfile = async () => {
     if (!session?.user) return;
 
     try {
       console.log('Sauvegarde pour user ID:', session.user.id);
-      console.log('Données à sauvegarder:', userData);
+      console.log('Données à sauvegarder:', editData);
 
       if (profileRole === 'customer') {
         const { error: profileError } = await supabase
           .from('profiles')
           .update({
-            phone: userData.phone || '',
-            birth_date: userData.birth_date || null,
-            address: userData.address || '',
+            phone: editData.phone || '',
+            birth_date: editData.birth_date || null,
+            address: editData.address || '',
           })
           .eq('id', session.user.id);
 
@@ -149,7 +121,7 @@ export default function ProfileScreen({ navigation, onNavigate }: any) {
           return;
         }
 
-        const fullName = `${userData.first_name || ''} ${userData.last_name || ''}`.trim();
+        const fullName = `${editData.first_name || ''} ${editData.last_name || ''}`.trim();
         const { error: customerError } = await supabase
           .from('customer_profiles')
           .update({
@@ -169,8 +141,8 @@ export default function ProfileScreen({ navigation, onNavigate }: any) {
         const { error: profileError } = await supabase
           .from('profiles')
           .update({
-            phone: userData.phone || '',
-            address: userData.address || '',
+            phone: editData.phone || '',
+            address: editData.address || '',
           })
           .eq('id', session.user.id);
 
@@ -184,9 +156,9 @@ export default function ProfileScreen({ navigation, onNavigate }: any) {
         const { error: companyError } = await supabase
           .from('company_profiles')
           .update({
-            company_name: userData.company_name,
-            contact_name: userData.contact_name,
-            siret_or_id: userData.siret_or_id,
+            company_name: editData.company_name,
+            contact_name: editData.contact_name,
+            siret_or_id: editData.siret_or_id,
           })
           .eq('id', session.user.id);
 
@@ -197,6 +169,9 @@ export default function ProfileScreen({ navigation, onNavigate }: any) {
           return;
         }
       }
+
+      // Revalidate the profile data from server
+      await mutateProfile();
 
       setSaveMessage('Modifications enregistrées !');
       setTimeout(() => setSaveMessage(null), 3000);
@@ -261,9 +236,9 @@ export default function ProfileScreen({ navigation, onNavigate }: any) {
           </View>
         )}
 
-        {/* INFO FIELDS */}
+         {/* INFO FIELDS */}
         <View style={styles.infoCard}>
-          {console.log('Rendu - userData:', userData)}
+          {console.log('Rendu - editData:', editData)}
           {profileRole === 'customer' && CUSTOMER_FIELDS.map((field) => (
             <View key={field.key} style={styles.infoRow}>
               <Text style={styles.infoIcon}>{field.icon}</Text>
@@ -271,9 +246,9 @@ export default function ProfileScreen({ navigation, onNavigate }: any) {
                 <Text style={styles.infoLabel}>{field.label}</Text>
                 <TextInput
                   style={[styles.infoValue, !isEditing && styles.infoValueDisabled]}
-                  value={userData[field.key] || ''}
+                  value={editData[field.key] || ''}
                   editable={isEditing}
-                  onChangeText={(text) => setUserData({ ...userData, [field.key]: text })}
+                  onChangeText={(text) => setEditData({ ...editData, [field.key]: text })}
                 />
               </View>
             </View>
@@ -286,9 +261,9 @@ export default function ProfileScreen({ navigation, onNavigate }: any) {
                 <Text style={styles.infoLabel}>{field.label}</Text>
                 <TextInput
                   style={[styles.infoValue, !isEditing && styles.infoValueDisabled]}
-                  value={userData[field.key] || ''}
+                  value={editData[field.key] || ''}
                   editable={isEditing}
-                  onChangeText={(text) => setUserData({ ...userData, [field.key]: text })}
+                  onChangeText={(text) => setEditData({ ...editData, [field.key]: text })}
                 />
               </View>
             </View>
@@ -298,7 +273,7 @@ export default function ProfileScreen({ navigation, onNavigate }: any) {
             <Text style={styles.infoIcon}>✉️</Text>
             <View style={styles.infoContent}>
               <Text style={styles.infoLabel}>Email</Text>
-              <Text style={styles.infoValueDisabled}>{userData.email}</Text>
+              <Text style={styles.infoValueDisabled}>{editData.email}</Text>
             </View>
           </View>
         </View>

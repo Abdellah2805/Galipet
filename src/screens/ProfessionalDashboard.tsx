@@ -11,6 +11,7 @@ import {
 import Icon from '../components/Icon';
 import { getSupabase } from '../lib/supabase';
 import { colors, radius, spacing } from '../theme/colors';
+import { useDashboardBookings } from '../hooks/useSupabase';
 
 const { width } = Dimensions.get('window');
 
@@ -33,61 +34,42 @@ const PERIOD_LABELS: Record<string, string> = {
 
 export default function ProfessionalDashboard() {
   const [period, setPeriod] = useState('Semaine');
-  const [bookings, setBookings] = useState<Booking[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [companyId, setCompanyId] = useState<string | null>(null);
   const [companyName, setCompanyName] = useState('');
+  const [isLoadingCompany, setIsLoadingCompany] = useState(true);
 
+  const { data: bookings, isLoading: isLoadingBookings, mutate: mutateBookings } = useDashboardBookings(companyId, period);
+
+  // Load company info once on mount
   useEffect(() => {
-    fetchBookings();
-  }, [period]);
+    const loadCompany = async () => {
+      try {
+        const supabase = getSupabase();
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) { setIsLoadingCompany(false); return; }
 
-  const fetchBookings = async () => {
-    try {
-      setLoading(true);
-      const supabase = getSupabase();
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) { setLoading(false); return; }
+        const { data: company } = await supabase
+          .from('company_profiles')
+          .select('id, company_name')
+          .eq('id', user.id)
+          .single();
 
-      const { data: company } = await supabase
-        .from('company_profiles')
-        .select('id, company_name')
-        .eq('id', user.id)
-        .single();
-
-      if (!company) { setLoading(false); return; }
-      setCompanyName(company.company_name || '');
-
-      const now = new Date();
-      let startDate: Date;
-      switch (period) {
-        case 'Jour':
-          startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-          break;
-        case 'Mois':
-          startDate = new Date(now.getFullYear(), now.getMonth(), 1);
-          break;
-        default:
-          startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 6);
+        if (company) {
+          setCompanyId(company.id);
+          setCompanyName(company.company_name || '');
+        }
+      } catch (err) {
+        console.error('Error fetching company:', err);
+      } finally {
+        setIsLoadingCompany(false);
       }
+    };
 
-      const { data: bookingsData, error } = await supabase
-        .from('bookings')
-        .select('*')
-        .eq('company_profile_id', company.id)
-        .gte('starts_at', startDate.toISOString())
-        .order('starts_at', { ascending: false });
+    loadCompany();
+  }, []);
 
-      if (error) throw error;
-      setBookings(bookingsData || []);
-    } catch (err) {
-      console.error('Error fetching bookings:', err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const calculateKPIs = () => {
-    const totalRevenueCents = bookings
+  const calculateKPIs = (bookingsList: Booking[]) => {
+    const totalRevenueCents = bookingsList
       .filter(b => b.status === 'completed' || b.status === 'confirmed')
       .reduce((sum, b) => sum + (b.amount_cents || 0), 0);
     const totalRevenue = (totalRevenueCents / 100).toFixed(2);
@@ -111,14 +93,14 @@ export default function ProfessionalDashboard() {
     ];
   };
 
-  const getTrendData = () => {
+  const getTrendData = (bookingsList: Booking[]) => {
     const data: { label: string; value: number }[] = [];
 
     if (period === 'Jour') {
       const slots = ['00', '06', '09', '12', '15', '18', '21'];
       slots.forEach(h => {
         const hNum = parseInt(h, 10);
-        const sum = bookings
+        const sum = bookingsList
           .filter(b => {
             const d = new Date(b.starts_at);
             return d.getHours() >= hNum && d.getHours() < hNum + 3;
@@ -128,7 +110,7 @@ export default function ProfessionalDashboard() {
       });
     } else if (period === 'Mois') {
       for (let w = 1; w <= 4; w++) {
-        const sum = bookings
+        const sum = bookingsList
           .filter(b => {
             const d = new Date(b.starts_at);
             const week = Math.ceil(d.getDate() / 7);
@@ -140,7 +122,7 @@ export default function ProfessionalDashboard() {
     } else {
       const days = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'];
       days.forEach((day, idx) => {
-        const sum = bookings
+        const sum = bookingsList
           .filter(b => {
             const d = new Date(b.starts_at);
             return d.getDay() === (idx + 1) % 7;
@@ -152,9 +134,9 @@ export default function ProfessionalDashboard() {
     return data;
   };
 
-  const kpis = calculateKPIs();
-  const trendData = getTrendData();
-  const maxTrend = Math.max(...trendData.map(d => d.value), 1);
+   const kpis = calculateKPIs(bookings || []);
+   const trendData = getTrendData(bookings || []);
+   const maxTrend = Math.max(...trendData.map(d => d.value), 1);
 
   return (
     <View style={styles.container}>
@@ -177,7 +159,7 @@ export default function ProfessionalDashboard() {
         <Text style={styles.headerWelcome}>Bonjour {companyName || 'pro'} !</Text>
       </View>
 
-      {loading ? (
+      {isLoadingCompany || isLoadingBookings ? (
         <View style={styles.center}>
           <ActivityIndicator size="large" color={colors.primary} />
         </View>

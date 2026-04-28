@@ -9,6 +9,7 @@ import * as ImagePicker from 'expo-image-picker';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { Picker } from '@react-native-picker/picker';
 import { useAuth } from '../context/AuthContext';
+import { useUserPets } from '../hooks/useSupabase';
 
 const SERVICE_CATEGORIES = [
   { id: '1', title: 'Santé', subtitle: 'Vétérinaires & urgences', icon: 'medical', color: '#D4663A', bg: '#F5E6E0', route: '/services/sante' },
@@ -131,12 +132,13 @@ const [animalDescription, setAnimalDescription] = useState('');
 const [animalPoids, setAnimalPoids] = useState('');
 const [animalAllergies, setAnimalAllergies] = useState('');
 const [animalVaccinations, setAnimalVaccinations] = useState('');
-const [selectedPersonalityTags, setSelectedPersonalityTags] = useState<string[]>([]);
-const [userPets, setUserPets] = useState<any[]>([]);
-const [isLoadingPets, setIsLoadingPets] = useState(false);
-const [firstName, setFirstName] = useState('');
-const supabase = getSupabase();
-const { session } = useAuth();
+  const [selectedPersonalityTags, setSelectedPersonalityTags] = useState<string[]>([]);
+  const [firstName, setFirstName] = useState('');
+  const [isCreatingPet, setIsCreatingPet] = useState(false);
+  const supabase = getSupabase();
+  const { session } = useAuth();
+
+  const { data: userPets, isLoading: isLoadingPets, mutate: mutatePets } = useUserPets(session?.user?.id);
 
 const personalityTags = ['Joueur', 'Calme', 'Affectueux', 'Énergique', 'Câlin', 'Indépendant', 'Sociable', 'Curieux', 'Gourmand', 'Protecteur'];
 
@@ -172,12 +174,6 @@ const pickImage = async () => {
 };
 
 useEffect(() => {
-  if (currentTab === 'animals') {
-    fetchUserPets();
-  }
-}, [currentTab]);
-
-useEffect(() => {
   if (session?.user) {
     loadUserName();
   }
@@ -200,117 +196,93 @@ const loadUserName = async () => {
   }
 };
 
-const fetchUserPets = async () => {
-  try {
-    setIsLoadingPets(true);
-    const { data: { user }, error: userError } = await supabase.auth.getUser();
-    if (userError || !user) {
-      console.error('User not logged in', userError);
-      return;
-    }
-    const { data: pets, error: petsError } = await supabase
-      .from('pets')
-      .select('*')
-      .eq('owner_id', user.id);
-    if (petsError) {
-      console.error('Error fetching pets', petsError);
-    } else {
-      setUserPets(pets || []);
-    }
-  } catch (error) {
-    console.error('Error fetching pets', error);
-  } finally {
-    setIsLoadingPets(false);
-  }
-};
-
-const handleCreatePet = async () => {
-  try {
-    setIsLoadingPets(true);
-    const { data: { user }, error: userError } = await supabase.auth.getUser();
-    if (userError || !user) {
-      Alert.alert('Erreur', 'Vous devez être connecté pour ajouter un animal');
-      return;
-    }
-
-    if (!animalNom || !selectedSpecies) {
-      Alert.alert('Erreur', 'Veuillez remplir au moins le nom et l\'espèce');
-      return;
-    }
-
-    let profileImageUrl = null;
-    // Temporairement désactivé pour tester sans upload
-    /*
-    if (animalPhoto) {
-      const fileName = `${user.id}_${Date.now()}.jpg`;
-      const response = await fetch(animalPhoto);
-      const blob = await response.blob();
-      const { data: uploadData, error: uploadError } = await supabase.storage
-        .from('pet-photos')
-        .upload(fileName, blob, {
-          contentType: 'image/jpeg',
-          upsert: false,
-        });
-      if (uploadError) {
-        console.error('Upload error', uploadError);
-        Alert.alert('Erreur', 'Erreur lors de l\'upload de l\'image');
+  const handleCreatePet = async () => {
+    try {
+      setIsCreatingPet(true);
+      const { data: { user }, error: userError } = await supabase.auth.getUser();
+      if (userError || !user) {
+        Alert.alert('Erreur', 'Vous devez être connecté pour ajouter un animal');
         return;
-      } else {
-        const { data: { publicUrl } } = supabase.storage
-          .from('pet-photos')
-          .getPublicUrl(fileName);
-        profileImageUrl = publicUrl;
       }
+
+      if (!animalNom || !selectedSpecies) {
+        Alert.alert('Erreur', 'Veuillez remplir au moins le nom et l\'espèce');
+        return;
+      }
+
+      let profileImageUrl = null;
+      // Temporairement désactivé pour tester sans upload
+      /*
+      if (animalPhoto) {
+        const fileName = `${user.id}_${Date.now()}.jpg`;
+        const response = await fetch(animalPhoto);
+        const blob = await response.blob();
+        const { data: uploadData, error: uploadError } = await supabase.storage
+          .from('pet-photos')
+          .upload(fileName, blob, {
+            contentType: 'image/jpeg',
+            upsert: false,
+          });
+        if (uploadError) {
+          console.error('Upload error', uploadError);
+          Alert.alert('Erreur', 'Erreur lors de l\'upload de l\'image');
+          return;
+        } else {
+          const { data: { publicUrl } } = supabase.storage
+            .from('pet-photos')
+            .getPublicUrl(fileName);
+          profileImageUrl = publicUrl;
+        }
+      }
+      */
+
+      const allergies = animalAllergies ? animalAllergies.split(',').map(s => s.trim()).filter(s => s.length > 0) : [];
+      const vaccinations = animalVaccinations ? animalVaccinations.split(',').map(s => s.trim()).filter(s => s.length > 0) : [];
+      const personalityTraits = selectedPersonalityTags;
+
+      const { data: petData, error: insertError } = await supabase
+        .from('pets')
+        .insert([
+          {
+            owner_id: user.id,
+            name: animalNom,
+            species: selectedSpecies,
+            breed: animalRace || null,
+            birth_date: animalDateNaissance ? animalDateNaissance.toISOString().split('T')[0] : null,
+            gender: animalSexe || null,
+            size: animalTaille || null,
+            coat_type: animalTypePoil || null,
+            description: animalDescription || null,
+            weight_kg: animalPoids ? parseFloat(animalPoids) : null,
+            profile_image_url: profileImageUrl,
+            allergies: allergies,
+            vaccinations: vaccinations,
+            personality_traits: personalityTraits,
+          },
+        ])
+        .select()
+        .single();
+
+      if (insertError) {
+        console.error('Insert error', insertError);
+        Alert.alert('Erreur', 'Erreur lors de l\'enregistrement de l\'animal');
+        return;
+      }
+
+      Alert.alert('Succès', 'Animal ajouté avec succès !');
+
+      setCurrentAnimal(petData);
+      resetAnimalForm();
+      setAddAnimalModalVisible(false);
+      await mutatePets(); // Recharge la liste des animaux
+      setCurrentTab('petProfile');
+    } catch (error) {
+      console.error('Error creating pet', error);
+      Alert.alert('Erreur', 'Une erreur est survenue');
+    } finally {
+      setIsCreatingPet(false);
     }
-    */
-
-    const allergies = animalAllergies ? animalAllergies.split(',').map(s => s.trim()).filter(s => s.length > 0) : [];
-    const vaccinations = animalVaccinations ? animalVaccinations.split(',').map(s => s.trim()).filter(s => s.length > 0) : [];
-    const personalityTraits = selectedPersonalityTags;
-
-    const { data: petData, error: insertError } = await supabase
-      .from('pets')
-      .insert([
-        {
-          owner_id: user.id,
-          name: animalNom,
-          species: selectedSpecies,
-          breed: animalRace || null,
-          birth_date: animalDateNaissance ? animalDateNaissance.toISOString().split('T')[0] : null,
-          gender: animalSexe || null,
-          size: animalTaille || null,
-          coat_type: animalTypePoil || null,
-          description: animalDescription || null,
-          weight_kg: animalPoids ? parseFloat(animalPoids) : null,
-          profile_image_url: profileImageUrl,
-          allergies: allergies,
-          vaccinations: vaccinations,
-          personality_traits: personalityTraits,
-        },
-      ])
-      .select()
-      .single();
-
-    if (insertError) {
-      console.error('Insert error', insertError);
-      Alert.alert('Erreur', 'Erreur lors de l\'enregistrement de l\'animal');
-      return;
-    }
-
-    Alert.alert('Succès', 'Animal ajouté avec succès !');
-
-    setCurrentAnimal(petData);
-    resetAnimalForm();
-    setAddAnimalModalVisible(false);
-    await fetchUserPets();
-    setCurrentTab('petProfile');
-  } catch (error) {
-    console.error('Error creating pet', error);
-    Alert.alert('Erreur', 'Une erreur est survenue');
-  } finally {
-    setIsLoadingPets(false);
-  }
-};
+  };
 
   const handleServicePress = (route: string) => {
     console.log('Navigate to:', route);
@@ -396,7 +368,7 @@ const handleCreatePet = async () => {
               <ActivityIndicator size="large" color="#FF5722" />
             </View>
           )}
-          {userPets.length === 0 ? (
+           {(userPets || []).length === 0 ? (
             <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: 20 }}>
               <View style={{ width: 100, height: 100, borderRadius: 50, backgroundColor: '#FFF5F0', alignItems: 'center', justifyContent: 'center' }}>
                 <Icon name="paw" size={50} color="#FF5722" />
@@ -414,7 +386,7 @@ const handleCreatePet = async () => {
             </View>
           ) : (
             <FlatList
-              data={userPets}
+              data={userPets || []}
               keyExtractor={(item) => item.id}
               contentContainerStyle={{ padding: 16 }}
               renderItem={({ item }) => (
@@ -697,11 +669,16 @@ const handleCreatePet = async () => {
               {/* Buttons */}
               <View style={{ padding: 24, paddingBottom: 40, backgroundColor: '#FFF8F1' }}>
                 <TouchableOpacity
-                  style={{ backgroundColor: '#FF5722', paddingVertical: 16, borderRadius: 25, alignItems: 'center', marginBottom: 12 }}
+                  style={{ backgroundColor: '#FF5722', paddingVertical: 16, borderRadius: 25, alignItems: 'center', marginBottom: 12, flexDirection: 'row', justifyContent: 'center', gap: 8 }}
                   onPress={handleCreatePet}
                   activeOpacity={0.8}
+                  disabled={isCreatingPet}
                 >
-                  <Text style={{ fontSize: 16, fontWeight: '700', color: '#FFF' }}>Créer</Text>
+                  {isCreatingPet ? (
+                    <ActivityIndicator size="small" color="#FFF" />
+                  ) : (
+                    <Text style={{ fontSize: 16, fontWeight: '700', color: '#FFF' }}>Créer</Text>
+                  )}
                 </TouchableOpacity>
 
                 <TouchableOpacity
@@ -733,15 +710,11 @@ const handleCreatePet = async () => {
           }}
           onUpdatePet={(updatedPet) => {
             setCurrentAnimal(updatedPet);
-            const updatedUserPets = userPets.map(pet => 
-              pet.id === updatedPet.id ? updatedPet : pet
-            );
-            setUserPets(updatedUserPets);
+            mutatePets(); // Recharge la liste depuis le serveur
           }}
           onDeletePet={(deletedPetId) => {
             setCurrentAnimal(null);
-            const updatedUserPets = userPets.filter(pet => pet.id !== deletedPetId);
-            setUserPets(updatedUserPets);
+            mutatePets(); // Recharge la liste depuis le serveur
           }}
         />
         <TabBar currentTab="animals" setCurrentTab={setCurrentTab} />
