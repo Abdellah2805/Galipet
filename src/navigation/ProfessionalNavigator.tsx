@@ -3,8 +3,8 @@ import { View, StyleSheet, TouchableOpacity, Text } from 'react-native';
 import Icon from '../components/Icon';
 import ProfessionalDashboard from '../screens/ProfessionalDashboard';
 import ProfessionalCalendarScreen from '../screens/ProfessionalCalendarScreen';
-import ProfileScreen from '../screens/ProfileScreen';
-import { colors, radius, spacing } from '../theme/colors';
+import ProfessionalProfileScreen from '../screens/ProfessionalProfileScreen';
+import { colors } from '../theme/colors';
 
 type ProTab = 'dashboard' | 'calendar' | 'profile';
 
@@ -22,7 +22,7 @@ export default function ProfessionalNavigator() {
       <View style={styles.screen}>
         {currentTab === 'dashboard' && <ProfessionalDashboard />}
         {currentTab === 'calendar' && <ProfessionalCalendarScreen />}
-        {currentTab === 'profile' && <ProfileScreen />}
+        {currentTab === 'profile' && <ProfessionalProfileScreen />}
       </View>
 
       {/* BOTTOM NAV BAR PRO */}
