@@ -420,6 +420,12 @@ export default function ProfessionalProfileScreen({ onNavigate }: any) {
         )}
       </View>
 
+      {/* Logout Button */}
+      <TouchableOpacity style={styles.logoutBtn} onPress={() => supabase?.auth?.signOut()} activeOpacity={0.7}>
+        <Icon name="log-out-outline" size={20} color="#C0392B" />
+        <Text style={styles.logoutText}>Se déconnecter</Text>
+      </TouchableOpacity>
+
       <View style={{ height: 40 }} />
     </ScrollView>
   );
@@ -823,6 +829,31 @@ const styles = StyleSheet.create({
   },
   btnDisabled: {
     opacity: 0.7,
+  },
+
+  // Logout
+  logoutBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 10,
+    backgroundColor: '#FFF',
+    borderRadius: radius.lg,
+    paddingVertical: 16,
+    marginTop: 8,
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: '#C0392B',
+    shadowColor: '#000',
+    shadowOpacity: 0.04,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 2 },
+    elevation: 2,
+  },
+  logoutText: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: '#C0392B',
   },
 
   // Cover Section (Aperçu)
