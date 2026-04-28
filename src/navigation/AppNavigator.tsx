@@ -329,6 +329,7 @@ const loadUserName = async () => {
         <ScrollView contentContainerStyle={{ paddingBottom: 100 }} showsVerticalScrollIndicator={false}>
           <ProfileScreen navigation={{ navigate: (screen: any) => setCurrentTab(screen) }} onNavigate={setCurrentTab} />
         </ScrollView>
+        <TabBar currentTab={currentTab} setCurrentTab={setCurrentTab} />
       </SafeAreaView>
     );
   }
