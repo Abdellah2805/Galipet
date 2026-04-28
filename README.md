@@ -9,6 +9,8 @@ propriétaire :
 moi1@gmail.com 
 mdp : 123456
 
+note: il est possible de s inscrire sauf pour professionnels (en maintenance)
+
 ## 📋 Concept du Projet
 
 **Gali'Pet** est une plateforme mobile-first qui connecte les propriétaires d'animaux (chiens et chats) avec des professionnels du secteur animalier. L'application est conçue comme un écosystème complet permettant de gérer la vie quotidienne de ses compagnons à quatre pattes tout en accédant facilement à des services professionnels de qualité.
