@@ -721,10 +721,11 @@ const loadUserName = async () => {
             setCurrentAnimal(updatedPet);
             mutatePets(); // Recharge la liste depuis le serveur
           }}
-          onDeletePet={(deletedPetId) => {
-            setCurrentAnimal(null);
-            mutatePets(); // Recharge la liste depuis le serveur
-          }}
+           onDeletePet={(deletedPetId) => {
+             setCurrentAnimal(null);
+             setCurrentTab('animals'); // Retour à la liste des animaux
+             mutatePets(); // Recharge la liste depuis le serveur
+           }}
         />
         <TabBar currentTab="animals" setCurrentTab={setCurrentTab} />
       </SafeAreaView>
