@@ -1,5 +1,14 @@
 # Gali'Pet - Application Mobile de Services pour Animaux
 
+Comptes test: 
+
+professionnel :
+contact@entreprise.com / mpd:123456
+
+propriétaire :
+moi1@gmail.com 
+mdp : 123456
+
 ## 📋 Concept du Projet
 
 **Gali'Pet** est une plateforme mobile-first qui connecte les propriétaires d'animaux (chiens et chats) avec des professionnels du secteur animalier. L'application est conçue comme un écosystème complet permettant de gérer la vie quotidienne de ses compagnons à quatre pattes tout en accédant facilement à des services professionnels de qualité.
