@@ -284,16 +284,7 @@ galipet-mobile/
 
 ---
 
-## 🔐 Variables d'Environnement
 
-Créer un fichier `.env.local` à la racine du projet :
-
-```env
-EXPO_PUBLIC_SUPABASE_URL=https://votre-projet.supabase.co
-EXPO_PUBLIC_SUPABASE_ANON_KEY=votre-cle-anon-publique
-```
-
-> Les variables doivent être préfixées par `EXPO_PUBLIC_` pour être accessibles dans le code client Expo.
 
 ---
 
