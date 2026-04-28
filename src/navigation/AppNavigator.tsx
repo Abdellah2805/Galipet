@@ -754,7 +754,7 @@ const loadUserName = async () => {
 
   return (
     <View style={styles.container}>
-      <ScrollView showsVerticalScrollIndicator={false}>
+      <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false}>
         {/* HEADER */}
         <View style={styles.header}>
           <TouchableOpacity style={styles.headerIconBtn} onPress={() => setCurrentTab('profile')} activeOpacity={0.7}>
@@ -954,6 +954,7 @@ const styles = StyleSheet.create({
     borderTopWidth: 1, borderTopColor: '#EADBC8',
     alignItems: 'center', justifyContent: 'space-evenly',
     shadowColor: '#000', shadowOffset: { width: 0, height: -2 }, shadowOpacity: 0.1, shadowRadius: 4, elevation: 8,
+    zIndex: 1000,
   },
   tabItem: { alignItems: 'center', paddingVertical: 8, paddingHorizontal: 16, borderRadius: 12 },
   tabItemActive: { backgroundColor: '#FFF5F0' },

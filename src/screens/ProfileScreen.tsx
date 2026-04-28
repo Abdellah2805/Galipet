@@ -184,7 +184,7 @@ export default function ProfileScreen({ navigation, onNavigate }: any) {
 
   return (
     <View style={styles.container}>
-      <ScrollView showsVerticalScrollIndicator={false}>
+      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
         {/* HEADER */}
         <View style={styles.header}>
           <Text style={styles.headerLogo}>gali<Text style={styles.headerLogoAccent}>'</Text>pet</Text>
@@ -291,6 +291,7 @@ export default function ProfileScreen({ navigation, onNavigate }: any) {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#F5F7FA' },
+  scrollView: { flex: 1 },
   
   // HEADER
   header: {
