@@ -122,16 +122,21 @@ export default function ProfessionalProfileScreen({ onNavigate }: any) {
   
   const [isSaving, setIsSaving] = useState(false);
 
-  // Show loading while profile is loading or no session
-  if (!session || isProfileLoading) {
-    return (
-      <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.background }}>
-        <ActivityIndicator size="large" color={colors.primary} />
-      </View>
-    );
-  }
+  // Load working hours from company profile - MUST be before early return to avoid conditional hook calls
+  const { data: hoursData, isLoading: isLoadingHours } = useSWR(
+    session?.user?.id ? ['company_hours', session.user.id] : null,
+    () =>
+      supabaseFetcher((supabase) =>
+        supabase
+          .from('company_profiles')
+          .select('working_hours')
+          .eq('id', session.user.id)
+          .single()
+      ),
+    { revalidateOnFocus: false }
+  );
 
-  // Load data when profile loads
+  // Load data when profile loads - MUST be before early return to avoid conditional hook calls
   useEffect(() => {
     if (profileData) {
       const companyProfile = Array.isArray(profileData.company_profiles)
@@ -158,20 +163,7 @@ export default function ProfessionalProfileScreen({ onNavigate }: any) {
     }
   }, [profileData]);
 
-  // Load working hours from company profile
-  const { data: hoursData, isLoading: isLoadingHours } = useSWR(
-    session?.user?.id ? ['company_hours', session.user.id] : null,
-    () =>
-      supabaseFetcher((supabase) =>
-        supabase
-          .from('company_profiles')
-          .select('working_hours')
-          .eq('id', session.user.id)
-          .single()
-      ),
-    { revalidateOnFocus: false }
-  );
-
+  // Handle working hours updates - MUST be before early return to avoid conditional hook calls
   useEffect(() => {
     if (hoursData?.working_hours) {
       setWorkingHours(hoursData.working_hours);
@@ -180,6 +172,15 @@ export default function ProfessionalProfileScreen({ onNavigate }: any) {
       setWorkingHours(Array(7).fill({ open: '', close: '' }));
     }
   }, [hoursData, session?.user?.id]);
+
+  // Show loading while profile is loading or no session
+  if (!session || isProfileLoading) {
+    return (
+      <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.background }}>
+        <ActivityIndicator size="large" color={colors.primary} />
+      </View>
+    );
+  }
 
   const handleFieldChange = (field: string, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
