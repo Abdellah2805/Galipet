@@ -83,10 +83,10 @@ export default function ProfessionalDashboard() {
       .filter(b => b.status === 'completed' || b.status === 'confirmed')
       .reduce((sum, b) => sum + (b.amount_cents || 0), 0);
     const totalRevenue = (totalRevenueCents / 100).toFixed(2);
-    const totalBookings = bookings.length;
-    const uniqueClients = new Set(bookings.map(b => b.customer_profile_id)).size;
+    const totalBookings = bookingsList.length;
+    const uniqueClients = new Set(bookingsList.map(b => b.customer_profile_id)).size;
 
-    const totalMinutes = bookings.reduce((sum, b) => {
+    const totalMinutes = bookingsList.reduce((sum, b) => {
       const start = new Date(b.starts_at);
       const end = new Date(b.ends_at);
       return sum + Math.max(0, end.getTime() - start.getTime()) / 60000;
@@ -169,7 +169,7 @@ export default function ProfessionalDashboard() {
         <Text style={styles.headerWelcome}>Bonjour {companyName || 'pro'} !</Text>
       </View>
 
-      {isLoadingCompany || isLoadingBookings ? (
+      {isLoadingCompany || isLoadingBookings || !bookings ? (
         <View style={styles.center}>
           <ActivityIndicator size="large" color={colors.primary} />
         </View>
