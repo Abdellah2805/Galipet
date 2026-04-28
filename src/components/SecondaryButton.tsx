@@ -2,7 +2,7 @@ import React from 'react';
 import { Pressable, Text, StyleSheet } from 'react-native';
 import { colors, radius } from '../theme/colors';
 
-export default function SecondaryButton({ title, onPress, style }) {
+export default function SecondaryButton({ title, onPress, style = {} }) {
   return (
     <Pressable
       onPress={onPress}

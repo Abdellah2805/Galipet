@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet, Image } from 'react-native';
+import { View, Text, StyleSheet } from 'react-native';
 import ScreenContainer from '../components/ScreenContainer';
 import PrimaryButton from '../components/PrimaryButton';
 import SecondaryButton from '../components/SecondaryButton';
@@ -17,7 +17,7 @@ export default function HomeScreen({ navigation }) {
     <ScreenContainer>
       <View style={styles.hero}>
         <Text style={styles.kicker}>Galipet</Text>
-        <Text style={styles.title}>La garde d'animaux,{"\n"}simple et bienveillante.</Text>
+        <Text style={styles.title}>La garde d&apos;animaux,{"\n"}simple et bienveillante.</Text>
         <Text style={styles.subtitle}>
           Trouvez un pet-sitter de confiance près de chez vous, ou proposez vos services en tant que professionnel.
         </Text>

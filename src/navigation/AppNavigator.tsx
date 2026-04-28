@@ -26,7 +26,7 @@ const RECOMMENDED = [
     title: 'Le promeneur en rollers',
     subtitle: 'Promenades ludiques en roller',
     rating: 4.0,
-    image: 'https://images.unsplash.com/photo-1601758224511-32e8adefbc4e?w=400',
+    image: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRUSj6OVcnF0IJeJVmBaVFofnUfRJk3xa81gQ&s',
     reviews: 28,
   },
   {
@@ -54,7 +54,7 @@ const BLOG_POSTS = [
     category: 'Hygiène',
     readTime: '3 min',
     date: '10 Jan',
-    image: 'https://images.unsplash.com/photo-1573865526739-10659f9f4a77?w=400',
+    image: 'https://www.consoglobe.com/wp-content/uploads/2022/11/litiere-chat-ecologique-economique-shutterstock_2027517470-1200x628.jpg',
   },
 ];
 

@@ -2,7 +2,7 @@ import React from 'react';
 import { Pressable, Text, StyleSheet, ActivityIndicator } from 'react-native';
 import { colors, radius } from '../theme/colors';
 
-export default function PrimaryButton({ title, onPress, loading, disabled, style }) {
+export default function PrimaryButton({ title, onPress, loading = false, disabled = false, style = {} }) {
   return (
     <Pressable
       onPress={onPress}
