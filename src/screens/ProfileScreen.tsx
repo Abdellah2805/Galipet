@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { View, Text, StyleSheet, ScrollView, Pressable, TextInput, SafeAreaView } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, Pressable, TextInput, SafeAreaView, ActivityIndicator } from 'react-native';
 import { getSupabase } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
 import { useProfile } from '../hooks/useSupabase';
@@ -23,11 +23,11 @@ const COMPANY_FIELDS = [
 ];
 
 export default function ProfileScreen({ navigation, onNavigate }: any) {
-  const { session, userRole } = useAuth();
+  const { session, userRole, loading: authLoading } = useAuth();
   const supabase = getSupabase();
   const navigateFn = onNavigate || navigation?.navigate || (() => {});
 
-  const { data: profileData, isLoading, mutate: mutateProfile } = useProfile(session?.user?.id);
+  const { data: profileData, isLoading: profileLoading, mutate: mutateProfile } = useProfile(session?.user?.id);
 
   // Transform profileData into userData shape (read-only)
   const userData = useMemo(() => {
@@ -182,6 +182,14 @@ export default function ProfileScreen({ navigation, onNavigate }: any) {
     }
   };
 
+  if (profileLoading || authLoading) {
+    return (
+      <SafeAreaView style={{ flex: 1, backgroundColor: '#FFF9F1', alignItems: 'center', justifyContent: 'center' }}>
+        <ActivityIndicator size="large" color="#E87A5D" />
+      </SafeAreaView>
+    );
+  }
+
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: '#FFF9F1' }}>
       <ScrollView contentContainerStyle={{ paddingBottom: 100 }} showsVerticalScrollIndicator={false}>
@@ -238,7 +246,6 @@ export default function ProfileScreen({ navigation, onNavigate }: any) {
 
          {/* INFO FIELDS */}
         <View style={styles.infoCard}>
-          {console.log('Rendu - editData:', editData)}
           {profileRole === 'customer' && CUSTOMER_FIELDS.map((field) => (
             <View key={field.key} style={styles.infoRow}>
               <Text style={styles.infoIcon}>{field.icon}</Text>

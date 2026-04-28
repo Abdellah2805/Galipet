@@ -117,6 +117,23 @@ export default function AppNavigator() {
   const [viewMode, setViewMode] = useState('grid');
   const [currentTab, setCurrentTab] = useState('explore' as 'explore' | 'animals' | 'messages' | 'profile' | 'petProfile');
   const [isAddAnimalModalVisible, setAddAnimalModalVisible] = useState(false);
+
+  // Restore active tab from localStorage on mount (prevents landing on 'explore' after every F5)
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('galipet_current_tab');
+      if (saved && ['explore', 'animals', 'messages', 'profile', 'petProfile'].includes(saved)) {
+        setCurrentTab(saved as any);
+      }
+    }
+  }, []);
+
+  // Persist active tab whenever it changes
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('galipet_current_tab', currentTab);
+    }
+  }, [currentTab]);
 const [selectedSpecies, setSelectedSpecies] = useState<string | null>(null);
 const [formStep, setFormStep] = useState(1);
 const [currentAnimal, setCurrentAnimal] = useState<any>(null);
@@ -136,9 +153,25 @@ const [animalVaccinations, setAnimalVaccinations] = useState('');
   const [firstName, setFirstName] = useState('');
   const [isCreatingPet, setIsCreatingPet] = useState(false);
   const supabase = getSupabase();
-  const { session } = useAuth();
+  const { session, loading: authLoading } = useAuth();
 
   const { data: userPets, isLoading: isLoadingPets, mutate: mutatePets } = useUserPets(session?.user?.id);
+
+  // Block render while auth is still rehydrating to avoid showing empty states
+  if (authLoading) {
+    return (
+      <SafeAreaView style={{ flex: 1, backgroundColor: '#FFF9F1', alignItems: 'center', justifyContent: 'center' }}>
+        <ActivityIndicator size="large" color="#E87A5D" />
+      </SafeAreaView>
+    );
+  }
+
+  // If user landed on petProfile but currentAnimal was lost (e.g. after F5), redirect to animals list
+  useEffect(() => {
+    if (currentTab === 'petProfile' && !currentAnimal) {
+      setCurrentTab('animals');
+    }
+  }, [currentTab, currentAnimal]);
 
 const personalityTags = ['Joueur', 'Calme', 'Affectueux', 'Énergique', 'Câlin', 'Indépendant', 'Sociable', 'Curieux', 'Gourmand', 'Protecteur'];
 
@@ -326,9 +359,7 @@ const loadUserName = async () => {
   if (currentTab === 'profile') {
     return (
       <SafeAreaView style={{ flex: 1, backgroundColor: '#FFF9F1' }}>
-        <ScrollView contentContainerStyle={{ paddingBottom: 100 }} showsVerticalScrollIndicator={false}>
-          <ProfileScreen navigation={{ navigate: (screen: any) => setCurrentTab(screen) }} onNavigate={setCurrentTab} />
-        </ScrollView>
+        <ProfileScreen navigation={{ navigate: (screen: any) => setCurrentTab(screen) }} onNavigate={setCurrentTab} />
         <TabBar currentTab={currentTab} setCurrentTab={setCurrentTab} />
       </SafeAreaView>
     );
@@ -370,12 +401,11 @@ const loadUserName = async () => {
 
         {/* LISTE DES ANIMAUX (FlatList avec paddingBottom) */}
         <View style={{ flex: 1 }}>
-          {isLoadingPets && (
-            <View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(255, 248, 241, 0.7)', zIndex: 10 }}>
+          {isLoadingPets ? (
+            <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: 20 }}>
               <ActivityIndicator size="large" color="#FF5722" />
             </View>
-          )}
-          {(userPets || []).length === 0 ? (
+          ) : (userPets || []).length === 0 ? (
             <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: 20 }}>
               <View style={{ width: 100, height: 100, borderRadius: 50, backgroundColor: '#FFF5F0', alignItems: 'center', justifyContent: 'center' }}>
                 <Icon name="paw" size={50} color="#FF5722" />
