@@ -55,21 +55,9 @@ export default function PetProfileScreen({ animalData, onNavigate, onAddAnother,
     setEditedPet(animalData);
   }, [animalData]);
 
-  const pickGalleryImage = async () => {
-    try {
-      const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ['images', 'videos'],
-        allowsEditing: true,
-        aspect: [1, 1],
-        quality: 0.8,
-      });
-
-      if (!result.canceled) {
-        await uploadGalleryPhoto(result.assets[0].uri);
-      }
-    } catch (error) {
-      console.error('Error picking image', error);
-    }
+      const pickGalleryImage = async () => {
+    // TODO: Implement gallery image picker if needed
+    console.log('Gallery image picker not implemented');
   };
 
   const uploadGalleryPhoto = async (imageUri: string) => {
@@ -80,7 +68,7 @@ export default function PetProfileScreen({ animalData, onNavigate, onAddAnother,
       const publicUrl = await uploadToCloudinary(imageUri, 'pet-gallery');
 
       if (!publicUrl) {
-        Alert.alert('Erreur', 'Erreur lors du téléchargement de la photo');
+        Alert.alert('Erreur', 'Échec du téléchargement: URL de l\'image non générée');
         return;
       }
 
@@ -97,10 +85,11 @@ export default function PetProfileScreen({ animalData, onNavigate, onAddAnother,
       if (insertError) throw insertError;
 
       mutatePhotos();
-    } catch (error) {
-      console.error('Error uploading gallery photo', error);
-      Alert.alert('Erreur', 'Erreur lors du téléchargement de la photo');
-    }
+      } catch (error: any) {
+        console.error('Error uploading gallery photo:', error);
+        console.log('Upload error details:', JSON.stringify(error));
+        Alert.alert('Erreur', `Échec du téléchargement: ${error?.message || 'Erreur inconnue'}`);
+      }
   };
 
   const calculateAge = (birthDate: string | null) => {
@@ -155,12 +144,11 @@ export default function PetProfileScreen({ animalData, onNavigate, onAddAnother,
       onUpdatePet(updatedPet);
       Alert.alert('Succès', 'Profil mis à jour avec succès');
       closeEditModal();
-    } catch (error) {
-      console.error('Error updating pet', error);
-      Alert.alert('Erreur', 'Erreur lors de la mise à jour du profil');
-    } finally {
-      setIsLoadingSave(false);
-    }
+      } catch (error: any) {
+        console.error('Error updating pet:', error);
+        console.log('Update error details:', JSON.stringify(error));
+        Alert.alert('Erreur', `Échec de la mise à jour: ${error?.message || 'Erreur inconnue'}`);
+      }
   };
 
   const pickProfileImage = async () => {
@@ -175,8 +163,9 @@ export default function PetProfileScreen({ animalData, onNavigate, onAddAnother,
       if (!result.canceled) {
         await uploadProfileImage(result.assets[0].uri);
       }
-    } catch (error) {
-      console.error('Error picking image', error);
+    } catch (error: any) {
+      console.error('Error picking profile image:', error);
+      console.log('Profile image picker error details:', JSON.stringify(error));
     }
   };
 
@@ -185,7 +174,7 @@ export default function PetProfileScreen({ animalData, onNavigate, onAddAnother,
       const publicUrl = await uploadToCloudinary(imageUri, 'pet-profile');
 
       if (!publicUrl) {
-        Alert.alert('Erreur', 'Erreur lors du téléchargement de la photo');
+        Alert.alert('Erreur', 'Échec du téléchargement: URL de l\'image non générée');
         return;
       }
 
@@ -199,10 +188,11 @@ export default function PetProfileScreen({ animalData, onNavigate, onAddAnother,
       const updatedPet = { ...localPetData, profile_image_url: publicUrl };
       setLocalPetData(updatedPet);
       onUpdatePet(updatedPet);
-    } catch (error) {
-      console.error('Error uploading profile image', error);
-      Alert.alert('Erreur', 'Erreur lors du téléchargement de la photo');
-    }
+      } catch (error: any) {
+        console.error('Error uploading profile image:', error);
+        console.log('Profile upload error details:', JSON.stringify(error));
+        Alert.alert('Erreur', `Échec du téléchargement: ${error?.message || 'Erreur inconnue'}`);
+      }
   };
 
   const togglePersonalityTrait = (trait: string) => {
@@ -241,13 +231,19 @@ export default function PetProfileScreen({ animalData, onNavigate, onAddAnother,
                 .delete()
                 .eq('id', localPetData.id);
 
-              if (error) throw error;
+              if (error) {
+                console.error('Error deleting pet:', error);
+                console.log('Delete error details:', JSON.stringify(error));
+                Alert.alert('Erreur', `Échec de la suppression: ${error.message || error.code || 'Erreur inconnue'}`);
+                return;
+              }
 
               Alert.alert('Succès', 'Profil supprimé avec succès');
               onDeletePet(localPetData.id);
-            } catch (error) {
-              console.error('Error deleting pet', error);
-              Alert.alert('Erreur', 'Erreur lors de la suppression du profil');
+            } catch (error: any) {
+              console.error('Error deleting pet:', error);
+              console.log('Delete error details:', JSON.stringify(error));
+              Alert.alert('Erreur', `Erreur lors de la suppression du profil: ${error?.message || error?.toString() || 'Erreur inconnue'}`);
             }
           },
         },
