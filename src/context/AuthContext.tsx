@@ -49,9 +49,19 @@ export function AuthProvider({ children }) {
       }
     });
 
-    supabase.auth.getSession().then(async ({ data }) => {
-      setSession(data.session);
-      if (data.session?.user) {
+    supabase.auth.getSession().then(async ({ data, error }) => {
+      // Gestion des erreurs de lock de session Supabase
+      if (error?.message?.includes('lock') || error?.message?.includes('Lock')) {
+        console.warn('Auth lock detected, clearing corrupted session:', error);
+        await supabase.auth.signOut();
+        setSession(null);
+        setLoading(false);
+        clearTimeout(timeoutId);
+        return;
+      }
+      
+      setSession(data?.session || null);
+      if (data?.session?.user) {
         const { data: profile } = await supabase
           .from('profiles')
           .select('role')
@@ -61,7 +71,8 @@ export function AuthProvider({ children }) {
       }
       clearTimeout(timeoutId);
       setLoading(false);
-    }).catch(() => {
+    }).catch((error) => {
+      console.warn('Auth session error:', error);
       clearTimeout(timeoutId);
       setLoading(false);
     });
