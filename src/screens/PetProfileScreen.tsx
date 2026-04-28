@@ -664,11 +664,11 @@ export default function PetProfileScreen({ animalData, onNavigate, onAddAnother,
                 </View>
               </>
             )}
-          </ScrollView>
-        </View>
-      </Modal>
-    </View>
-  );
+           </ScrollView>
+         </View>
+       </Modal>
+     </SafeAreaView>
+   );
 }
 
 const styles = StyleSheet.create({
