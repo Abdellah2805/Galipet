@@ -11,6 +11,7 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import Icon from '../components/Icon';
+import useSWR from 'swr';
 import { getSupabase } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
 import { useProfile } from '../hooks/useSupabase';
@@ -81,6 +82,16 @@ const EditableSection = ({ title, icon, children, onEdit, isEditing, isLoading }
   </View>
 );
 
+// Fetcher générique pour Supabase
+const supabaseFetcher = async (queryFn: (supabase: any) => Promise<any>) => {
+  const supabase = getSupabase();
+  const result = await queryFn(supabase);
+  if (result.error) {
+    throw result.error;
+  }
+  return result.data;
+};
+
 export default function ProfessionalProfileScreen({ onNavigate }: any) {
   const { session } = useAuth();
   const supabase = getSupabase();
@@ -109,7 +120,6 @@ export default function ProfessionalProfileScreen({ onNavigate }: any) {
     role: 'Éleveur',
   });
   
-  const [isLoadingHours, setIsLoadingHours] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
 
   // Load data when profile loads
@@ -139,34 +149,28 @@ export default function ProfessionalProfileScreen({ onNavigate }: any) {
     }
   }, [profileData]);
 
-  // Load working hours from dedicated table or from company profile
-  useEffect(() => {
-    const loadWorkingHours = async () => {
-      if (!session?.user?.id) return;
-      setIsLoadingHours(true);
-      try {
-        const supabaseClient = getSupabase();
-        const { data: hoursData } = await supabaseClient
+  // Load working hours from company profile
+  const { data: hoursData, isLoading: isLoadingHours } = useSWR(
+    session?.user?.id ? ['company_hours', session.user.id] : null,
+    () =>
+      supabaseFetcher((supabase) =>
+        supabase
           .from('company_profiles')
           .select('working_hours')
           .eq('id', session.user.id)
-          .single();
-        
-        if (hoursData?.working_hours) {
-          setWorkingHours(hoursData.working_hours);
-        } else {
-          // Default empty hours
-          setWorkingHours(Array(7).fill({ open: '', close: '' }));
-        }
-      } catch (err) {
-        console.error('Error loading working hours:', err);
-        setWorkingHours(Array(7).fill({ open: '', close: '' }));
-      } finally {
-        setIsLoadingHours(false);
-      }
-    };
-    loadWorkingHours();
-  }, [session?.user?.id]);
+          .single()
+      ),
+    { revalidateOnFocus: false }
+  );
+
+  useEffect(() => {
+    if (hoursData?.working_hours) {
+      setWorkingHours(hoursData.working_hours);
+    } else if (session?.user?.id) {
+      // Default empty hours only when we have a session but no stored hours
+      setWorkingHours(Array(7).fill({ open: '', close: '' }));
+    }
+  }, [hoursData, session?.user?.id]);
 
   const handleFieldChange = (field: string, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
