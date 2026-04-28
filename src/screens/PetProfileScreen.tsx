@@ -245,7 +245,6 @@ export default function PetProfileScreen({ animalData, onNavigate, onAddAnother,
 
               Alert.alert('Succès', 'Profil supprimé avec succès');
               onDeletePet(localPetData.id);
-              onNavigate('animals');
             } catch (error) {
               console.error('Error deleting pet', error);
               Alert.alert('Erreur', 'Erreur lors de la suppression du profil');
