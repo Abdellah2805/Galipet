@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Image, ScrollView, ActivityIndicator, Modal, TextInput, Alert } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Image, ScrollView, ActivityIndicator, Modal, TextInput, Alert, SafeAreaView } from 'react-native';
 import Icon from '../components/Icon';
 import { colors, spacing } from '../theme/colors';
 import { getSupabase } from '../lib/supabase';
@@ -256,214 +256,214 @@ export default function PetProfileScreen({ animalData, onNavigate, onAddAnother,
     );
   };
 
-  const age = calculateAge(localPetData.birth_date);
-  return (
-    <View style={styles.container}>
-      {/* Header Orange */}
-      <View style={styles.header}>
-        <View style={styles.headerLeft}>
-          <TouchableOpacity onPress={pickProfileImage} activeOpacity={0.7}>
-            <View style={styles.profileImageContainer}>
-              {localPetData.profile_image_url ? (
-                <Image 
-                  source={{ uri: localPetData.profile_image_url }} 
-                  style={styles.profileImage}
-                  resizeMode="cover"
-                />
-              ) : (
-                <Icon name="paw" size={24} color="#FF5722" />
-              )}
-            </View>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.addButton} onPress={onAddAnother} activeOpacity={0.7}>
-            <View style={styles.addButtonInner}>
-              <Icon name="add" size={20} color="#FFF" />
-            </View>
-          </TouchableOpacity>
-        </View>
+   const age = calculateAge(localPetData.birth_date);
+   return (
+     <SafeAreaView style={{ flex: 1, backgroundColor: '#FFF9F1' }}>
+       {/* Header Orange */}
+       <View style={styles.header}>
+         <View style={styles.headerLeft}>
+           <TouchableOpacity onPress={pickProfileImage} activeOpacity={0.7}>
+             <View style={styles.profileImageContainer}>
+               {localPetData.profile_image_url ? (
+                 <Image
+                   source={{ uri: localPetData.profile_image_url }}
+                   style={styles.profileImage}
+                   resizeMode="cover"
+                 />
+               ) : (
+                 <Icon name="paw" size={24} color="#FF5722" />
+               )}
+             </View>
+           </TouchableOpacity>
+           <TouchableOpacity style={styles.addButton} onPress={onAddAnother} activeOpacity={0.7}>
+             <View style={styles.addButtonInner}>
+               <Icon name="add" size={20} color="#FFF" />
+             </View>
+           </TouchableOpacity>
+         </View>
 
-        <Text style={styles.headerLogo}>gali<Text style={styles.headerLogoAccent}>'</Text>pet</Text>
+         <Text style={styles.headerLogo}>gali<Text style={styles.headerLogoAccent}>'</Text>pet</Text>
 
-        <View style={styles.headerRightIcons}>
-          <TouchableOpacity onPress={() => onNavigate('messages')} activeOpacity={0.7}>
-            <Icon name="chatbubble-ellipses" size={22} color="#FFF" />
-          </TouchableOpacity>
-          <TouchableOpacity onPress={() => console.log('calendar')} activeOpacity={0.7}>
-            <Icon name="calendar" size={22} color="#FFF" />
-          </TouchableOpacity>
-          <TouchableOpacity onPress={() => console.log('notifications')} activeOpacity={0.7}>
-            <Icon name="notifications" size={22} color="#FFF" />
-          </TouchableOpacity>
-        </View>
-      </View>
+         <View style={styles.headerRightIcons}>
+           <TouchableOpacity onPress={() => onNavigate('messages')} activeOpacity={0.7}>
+             <Icon name="chatbubble-ellipses" size={22} color="#FFF" />
+           </TouchableOpacity>
+           <TouchableOpacity onPress={() => console.log('calendar')} activeOpacity={0.7}>
+             <Icon name="calendar" size={22} color="#FFF" />
+           </TouchableOpacity>
+           <TouchableOpacity onPress={() => console.log('notifications')} activeOpacity={0.7}>
+             <Icon name="notifications" size={22} color="#FFF" />
+           </TouchableOpacity>
+         </View>
+       </View>
 
-      {/* Switch Preview/Profile */}
-      <View style={styles.switchContainer}>
-        <TouchableOpacity
-          style={[styles.switchButton, activeTab === 'preview' && styles.switchButtonActive]}
-          onPress={() => setActiveTab('preview')}
-          activeOpacity={0.7}
-        >
-          <Text style={[styles.switchButtonText, activeTab === 'preview' && styles.switchButtonTextActive]}>
-            Preview
-          </Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={[styles.switchButton, activeTab === 'profile' && styles.switchButtonActive]}
-          onPress={() => setActiveTab('profile')}
-          activeOpacity={0.7}
-        >
-          <Text style={[styles.switchButtonText, activeTab === 'profile' && styles.switchButtonTextActive]}>
-            Profile
-          </Text>
-        </TouchableOpacity>
-      </View>
+       {/* Switch Preview/Profile */}
+       <View style={styles.switchContainer}>
+         <TouchableOpacity
+           style={[styles.switchButton, activeTab === 'preview' && styles.switchButtonActive]}
+           onPress={() => setActiveTab('preview')}
+           activeOpacity={0.7}
+         >
+           <Text style={[styles.switchButtonText, activeTab === 'preview' && styles.switchButtonTextActive]}>
+             Preview
+           </Text>
+         </TouchableOpacity>
+         <TouchableOpacity
+           style={[styles.switchButton, activeTab === 'profile' && styles.switchButtonActive]}
+           onPress={() => setActiveTab('profile')}
+           activeOpacity={0.7}
+         >
+           <Text style={[styles.switchButtonText, activeTab === 'profile' && styles.switchButtonTextActive]}>
+             Profile
+           </Text>
+         </TouchableOpacity>
+       </View>
 
-      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
-        {activeTab === 'preview' ? (
-          <View style={styles.previewContainer}>
-            <View style={styles.previewCard}>
-              {localPetData.profile_image_url ? (
-                <Image 
-                  source={{ uri: localPetData.profile_image_url }} 
-                  style={styles.previewImage}
-                  resizeMode="cover"
-                />
-              ) : (
-                <View style={styles.previewImagePlaceholder}>
-                  <Icon name="paw" size={64} color="#FF5722" />
-                </View>
-              )}
-              <View style={styles.previewOverlay}>
-                <View style={styles.previewInfo}>
-                  <Text style={styles.previewName}>{localPetData.name}</Text>
-                  <Text style={styles.previewBreed}>{localPetData.breed}</Text>
-                  {age !== null && <Text style={styles.previewAge}>{age} ans</Text>}
-                </View>
-                
-                {localPetData.personality_traits && localPetData.personality_traits.length > 0 && (
-                  <View style={styles.badgesContainer}>
-                    {localPetData.personality_traits.map((trait, index) => (
-                      <View key={index} style={styles.badge}>
-                        <Text style={styles.badgeText}>{trait}</Text>
-                      </View>
-                    ))}
-                  </View>
-                )}
+       <ScrollView contentContainerStyle={{ paddingBottom: 80 }} showsVerticalScrollIndicator={false}>
+         {activeTab === 'preview' ? (
+           <View style={styles.previewContainer}>
+             <View style={styles.previewCard}>
+               {localPetData.profile_image_url ? (
+                 <Image
+                   source={{ uri: localPetData.profile_image_url }}
+                   style={styles.previewImage}
+                   resizeMode="cover"
+                 />
+               ) : (
+                 <View style={styles.previewImagePlaceholder}>
+                   <Icon name="paw" size={64} color="#FF5722" />
+                 </View>
+               )}
+               <View style={styles.previewOverlay}>
+                 <View style={styles.previewInfo}>
+                   <Text style={styles.previewName}>{localPetData.name}</Text>
+                   <Text style={styles.previewBreed}>{localPetData.breed}</Text>
+                   {age !== null && <Text style={styles.previewAge}>{age} ans</Text>}
+                 </View>
 
-                <TouchableOpacity style={styles.viewProfileButton} onPress={() => setActiveTab('profile')}>
-                  <Text style={styles.viewProfileButtonText}>Voir le profil complet</Text>
-                </TouchableOpacity>
-              </View>
-            </View>
-          </View>
-        ) : (
-          <View style={styles.profileContainer}>
-            {/* Informations de base */}
-            <TouchableOpacity style={styles.section} onPress={() => openEditModal('basic')} activeOpacity={0.7}>
-              <View style={styles.sectionHeader}>
-                <Text style={styles.sectionTitle}>Informations de base</Text>
-                <TouchableOpacity onPress={(e) => { e.stopPropagation(); openEditModal('basic'); }} style={styles.editIcon}>
-                  <Icon name="pencil" size={20} color="#FF5722" />
-                </TouchableOpacity>
-              </View>
-              <View style={styles.sectionContent}>
-                <Text style={styles.infoLabel}>Nom: <Text style={styles.infoValue}>{localPetData.name}</Text></Text>
-                <Text style={styles.infoLabel}>Espèce: <Text style={styles.infoValue}>{localPetData.species === 'chien' ? 'Chien' : 'Chat'}</Text></Text>
-                {localPetData.breed && <Text style={styles.infoLabel}>Race: <Text style={styles.infoValue}>{localPetData.breed}</Text></Text>}
-                {localPetData.gender && <Text style={styles.infoLabel}>Sexe: <Text style={styles.infoValue}>{localPetData.gender === 'male' ? 'Mâle' : 'Femelle'}</Text></Text>}
-                {localPetData.size && <Text style={styles.infoLabel}>Taille: <Text style={styles.infoValue}>{localPetData.size}</Text></Text>}
-                {localPetData.weight_kg && <Text style={styles.infoLabel}>Poids: <Text style={styles.infoValue}>{localPetData.weight_kg} kg</Text></Text>}
-                {age !== null && <Text style={styles.infoLabel}>Âge: <Text style={styles.infoValue}>{age} ans</Text></Text>}
-              </View>
-            </TouchableOpacity>
+                 {localPetData.personality_traits && localPetData.personality_traits.length > 0 && (
+                   <View style={styles.badgesContainer}>
+                     {localPetData.personality_traits.map((trait, index) => (
+                       <View key={index} style={styles.badge}>
+                         <Text style={styles.badgeText}>{trait}</Text>
+                       </View>
+                     ))}
+                   </View>
+                 )}
 
-            {/* Personnalité */}
-            {localPetData.personality_traits && localPetData.personality_traits.length > 0 && (
-              <View style={styles.section}>
-                <View style={styles.sectionHeader}>
-                  <Text style={styles.sectionTitle}>Personnalité</Text>
-                  <TouchableOpacity onPress={(e) => { e.stopPropagation(); openEditModal('basic'); }} style={styles.editIcon}>
-                    <Icon name="pencil" size={20} color="#FF5722" />
-                  </TouchableOpacity>
-                </View>
-                <View style={styles.tagsContainer}>
-                  {localPetData.personality_traits.map((tag) => (
-                    <View key={tag} style={styles.tag}>
-                      <Text style={styles.tagText}>{tag}</Text>
-                    </View>
-                  ))}
-                </View>
-              </View>
-            )}
+                 <TouchableOpacity style={styles.viewProfileButton} onPress={() => setActiveTab('profile')}>
+                   <Text style={styles.viewProfileButtonText}>Voir le profil complet</Text>
+                 </TouchableOpacity>
+               </View>
+             </View>
+           </View>
+         ) : (
+           <View style={styles.profileContainer}>
+             {/* Informations de base */}
+             <TouchableOpacity style={styles.section} onPress={() => openEditModal('basic')} activeOpacity={0.7}>
+               <View style={styles.sectionHeader}>
+                 <Text style={styles.sectionTitle}>Informations de base</Text>
+                 <TouchableOpacity onPress={(e) => { e.stopPropagation(); openEditModal('basic'); }} style={styles.editIcon}>
+                   <Icon name="pencil" size={20} color="#FF5722" />
+                 </TouchableOpacity>
+               </View>
+               <View style={styles.sectionContent}>
+                 <Text style={styles.infoLabel}>Nom: <Text style={styles.infoValue}>{localPetData.name}</Text></Text>
+                 <Text style={styles.infoLabel}>Espèce: <Text style={styles.infoValue}>{localPetData.species === 'chien' ? 'Chien' : 'Chat'}</Text></Text>
+                 {localPetData.breed && <Text style={styles.infoLabel}>Race: <Text style={styles.infoValue}>{localPetData.breed}</Text></Text>}
+                 {localPetData.gender && <Text style={styles.infoLabel}>Sexe: <Text style={styles.infoValue}>{localPetData.gender === 'male' ? 'Mâle' : 'Femelle'}</Text></Text>}
+                 {localPetData.size && <Text style={styles.infoLabel}>Taille: <Text style={styles.infoValue}>{localPetData.size}</Text></Text>}
+                 {localPetData.weight_kg && <Text style={styles.infoLabel}>Poids: <Text style={styles.infoValue}>{localPetData.weight_kg} kg</Text></Text>}
+                 {age !== null && <Text style={styles.infoLabel}>Âge: <Text style={styles.infoValue}>{age} ans</Text></Text>}
+               </View>
+             </TouchableOpacity>
 
-            {/* Santé */}
-            <TouchableOpacity style={styles.section} onPress={() => openEditModal('health')} activeOpacity={0.7}>
-              <View style={styles.sectionHeader}>
-                <Text style={styles.sectionTitle}>Santé</Text>
-                <TouchableOpacity onPress={(e) => { e.stopPropagation(); openEditModal('health'); }} style={styles.editIcon}>
-                  <Icon name="pencil" size={20} color="#FF5722" />
-                </TouchableOpacity>
-              </View>
-              <View style={styles.sectionContent}>
-                {localPetData.description && <Text style={styles.infoText}>Description: <Text style={styles.infoValue}>{localPetData.description}</Text></Text>}
-                {localPetData.coat_type && <Text style={styles.infoLabel}>Type de poil: <Text style={styles.infoValue}>{localPetData.coat_type}</Text></Text>}
-                {localPetData.allergies && Array.isArray(localPetData.allergies) && localPetData.allergies.length > 0 && (
-                  <Text style={styles.infoLabel}>Allergies: <Text style={styles.infoValue}>{localPetData.allergies.join(', ')}</Text></Text>
-                )}
-                {localPetData.vaccinations && Array.isArray(localPetData.vaccinations) && localPetData.vaccinations.length > 0 && (
-                  <Text style={styles.infoLabel}>Vaccinations: <Text style={styles.infoValue}>{localPetData.vaccinations.join(', ')}</Text></Text>
-                )}
-                {!localPetData.description && !localPetData.coat_type && (!localPetData.allergies || localPetData.allergies.length === 0) && (!localPetData.vaccinations || localPetData.vaccinations.length === 0) && (
-                  <Text style={styles.infoText}>Aucune information de santé renseignée</Text>
-                )}
-              </View>
-            </TouchableOpacity>
+             {/* Personnalité */}
+             {localPetData.personality_traits && localPetData.personality_traits.length > 0 && (
+               <View style={styles.section}>
+                 <View style={styles.sectionHeader}>
+                   <Text style={styles.sectionTitle}>Personnalité</Text>
+                   <TouchableOpacity onPress={(e) => { e.stopPropagation(); openEditModal('basic'); }} style={styles.editIcon}>
+                     <Icon name="pencil" size={20} color="#FF5722" />
+                   </TouchableOpacity>
+                 </View>
+                 <View style={styles.tagsContainer}>
+                   {localPetData.personality_traits.map((tag) => (
+                     <View key={tag} style={styles.tag}>
+                       <Text style={styles.tagText}>{tag}</Text>
+                     </View>
+                   ))}
+                 </View>
+               </View>
+             )}
 
-            {/* Galerie Photos */}
-            <View style={styles.galleryContainer}>
-              <Text style={styles.sectionTitle}>Galerie photos</Text>
-              <View style={styles.galleryGrid}>
-                {(galleryPhotos || []).map((photo) => {
-                  return (
-                    <View key={photo.id} style={styles.galleryPhoto}>
-                      {photo.photo_url ? (
-                        <Image 
-                          source={{ uri: photo.photo_url }} 
-                          style={styles.galleryPhotoImage}
-                          resizeMode="cover"
-                        />
-                      ) : (
-                        <View style={styles.galleryPhotoPlaceholder}>
-                          <Icon name="image-outline" size={32} color="#ccc" />
-                        </View>
-                      )}
-                    </View>
-                  );
-                })}
-                {(galleryPhotos || []).length < 8 && (
-                  <TouchableOpacity style={styles.addPhotoButton} onPress={pickGalleryImage} activeOpacity={0.7}>
-                    <View style={styles.addPhotoButtonInner}>
-                      <Icon name="add" size={24} color="#FF5722" />
-                    </View>
-                  </TouchableOpacity>
-                )}
-              </View>
-              {isLoadingGallery && (
-                <View style={styles.loadingContainer}>
-                  <ActivityIndicator size="small" color="#FF5722" />
-                </View>
-              )}
-            </View>
+             {/* Santé */}
+             <TouchableOpacity style={styles.section} onPress={() => openEditModal('health')} activeOpacity={0.7}>
+               <View style={styles.sectionHeader}>
+                 <Text style={styles.sectionTitle}>Santé</Text>
+                 <TouchableOpacity onPress={(e) => { e.stopPropagation(); openEditModal('health'); }} style={styles.editIcon}>
+                   <Icon name="pencil" size={20} color="#FF5722" />
+                 </TouchableOpacity>
+               </View>
+               <View style={styles.sectionContent}>
+                 {localPetData.description && <Text style={styles.infoText}>Description: <Text style={styles.infoValue}>{localPetData.description}</Text></Text>}
+                 {localPetData.coat_type && <Text style={styles.infoLabel}>Type de poil: <Text style={styles.infoValue}>{localPetData.coat_type}</Text></Text>}
+                 {localPetData.allergies && Array.isArray(localPetData.allergies) && localPetData.allergies.length > 0 && (
+                   <Text style={styles.infoLabel}>Allergies: <Text style={styles.infoValue}>{localPetData.allergies.join(', ')}</Text></Text>
+                 )}
+                 {localPetData.vaccinations && Array.isArray(localPetData.vaccinations) && localPetData.vaccinations.length > 0 && (
+                   <Text style={styles.infoLabel}>Vaccinations: <Text style={styles.infoValue}>{localPetData.vaccinations.join(', ')}</Text></Text>
+                 )}
+                 {!localPetData.description && !localPetData.coat_type && (!localPetData.allergies || localPetData.allergies.length === 0) && (!localPetData.vaccinations || localPetData.vaccinations.length === 0) && (
+                   <Text style={styles.infoText}>Aucune information de santé renseignée</Text>
+                 )}
+               </View>
+             </TouchableOpacity>
 
-            {/* Bouton Supprimer */}
-            <TouchableOpacity style={styles.deleteButton} onPress={handleDeletePet} activeOpacity={0.7}>
-              <Icon name="trash-outline" size={20} color="#FFF" />
-              <Text style={styles.deleteButtonText}>Supprimer le profil</Text>
-            </TouchableOpacity>
-          </View>
-        )}
-      </ScrollView>
+             {/* Galerie Photos */}
+             <View style={styles.galleryContainer}>
+               <Text style={styles.sectionTitle}>Galerie photos</Text>
+               <View style={styles.galleryGrid}>
+                 {(galleryPhotos || []).map((photo) => {
+                   return (
+                     <View key={photo.id} style={styles.galleryPhoto}>
+                       {photo.photo_url ? (
+                         <Image
+                           source={{ uri: photo.photo_url }}
+                           style={styles.galleryPhotoImage}
+                           resizeMode="cover"
+                         />
+                       ) : (
+                         <View style={styles.galleryPhotoPlaceholder}>
+                           <Icon name="image-outline" size={32} color="#ccc" />
+                         </View>
+                       )}
+                     </View>
+                   );
+                 })}
+                 {(galleryPhotos || []).length < 8 && (
+                   <TouchableOpacity style={styles.addPhotoButton} onPress={pickGalleryImage} activeOpacity={0.7}>
+                     <View style={styles.addPhotoButtonInner}>
+                       <Icon name="add" size={24} color="#FF5722" />
+                     </View>
+                   </TouchableOpacity>
+                 )}
+               </View>
+               {isLoadingGallery && (
+                 <View style={styles.loadingContainer}>
+                   <ActivityIndicator size="small" color="#FF5722" />
+                 </View>
+               )}
+             </View>
+
+             {/* Bouton Supprimer */}
+             <TouchableOpacity style={styles.deleteButton} onPress={handleDeletePet} activeOpacity={0.7}>
+               <Icon name="trash-outline" size={20} color="#FFF" />
+               <Text style={styles.deleteButtonText}>Supprimer le profil</Text>
+             </TouchableOpacity>
+           </View>
+         )}
+       </ScrollView>
 
       {/* Modal de modification */}
       <Modal

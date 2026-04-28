@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { View, Text, StyleSheet, ScrollView, Pressable, TextInput } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, Pressable, TextInput, SafeAreaView } from 'react-native';
 import { getSupabase } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
 import { useProfile } from '../hooks/useSupabase';
@@ -183,8 +183,8 @@ export default function ProfileScreen({ navigation, onNavigate }: any) {
   };
 
   return (
-    <View style={styles.container}>
-      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: '#FFF9F1' }}>
+      <ScrollView contentContainerStyle={{ paddingBottom: 100 }} showsVerticalScrollIndicator={false}>
         {/* HEADER */}
         <View style={styles.header}>
           <Text style={styles.headerLogo}>gali<Text style={styles.headerLogoAccent}>'</Text>pet</Text>
@@ -216,8 +216,8 @@ export default function ProfileScreen({ navigation, onNavigate }: any) {
             <Text style={styles.cardTitleIcon}>👤</Text>
             <Text style={styles.cardTitle}>Informations personnelles</Text>
           </View>
-          <Pressable 
-            style={styles.editBtn} 
+          <Pressable
+            style={styles.editBtn}
             onPress={() => {
               if (isEditing) {
                 handleUpdateProfile();
@@ -282,59 +282,57 @@ export default function ProfileScreen({ navigation, onNavigate }: any) {
         <Pressable style={styles.logoutBtn} onPress={() => supabase?.auth?.signOut()}>
           <Text style={styles.logoutText}>Se déconnecter</Text>
         </Pressable>
-
-        <View style={styles.bottomSpacer} />
       </ScrollView>
-    </View>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#F5F7FA' },
-  scrollView: { flex: 1 },
-  
-  // HEADER
-  header: {
-    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
-    backgroundColor: '#E87A5D', paddingTop: 50, paddingHorizontal: 16, paddingBottom: 16,
-  },
-  headerLogo: { fontSize: 28, fontWeight: '800', color: '#FFF' },
-  headerLogoAccent: { color: '#FFF' },
-  headerRightIcons: { flexDirection: 'row', gap: 12 },
-  headerIcon: { fontSize: 20 },
-  
-  // PROFILE SECTION
-  profileSection: { alignItems: 'center', paddingVertical: 20, backgroundColor: '#F5F7FA' },
-  avatarContainer: { position: 'relative' },
-  avatar: { width: 100, height: 100, borderRadius: 50, backgroundColor: '#A0A0A0', alignItems: 'center', justifyContent: 'center' },
-  avatarIcon: { fontSize: 40, color: '#FFF' },
-  cameraBtn: { position: 'absolute', bottom: 0, right: 0, width: 32, height: 32, borderRadius: 16, backgroundColor: '#E87A5D', alignItems: 'center', justifyContent: 'center', borderWidth: 2, borderColor: '#FFF' },
-  cameraIcon: { fontSize: 14 },
-  userName: { fontSize: 22, fontWeight: '700', color: '#2E2A26', marginTop: 12 },
-  
-  // INFO CARD
-  infoCard: { backgroundColor: '#FFF', marginHorizontal: 16, marginTop: 12, borderRadius: 16, padding: 16 },
-  cardTitleRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  cardTitle: { fontSize: 16, fontWeight: '700', color: '#2E2A26' },
-  cardTitleIcon: { fontSize: 18 },
-  editBtn: { position: 'absolute', top: 16, right: 16 },
-  editIcon: { fontSize: 18 },
-  
-  // INFO FIELDS
-  infoRow: { flexDirection: 'row', alignItems: 'center', gap: 12, marginTop: 16 },
-  infoIcon: { fontSize: 18, width: 24 },
-  infoContent: { flex: 1 },
-  infoLabel: { fontSize: 12, color: '#6B6660', marginBottom: 4 },
-  infoValue: { fontSize: 16, color: '#2E2A26', fontWeight: '500', borderBottomWidth: 1, borderBottomColor: '#EADBC8', paddingBottom: 4 },
-  infoValueDisabled: { fontSize: 16, color: '#2E2A26', fontWeight: '500' },
-  
-  // SAVE MESSAGE
-  saveMessageContainer: { backgroundColor: '#27AE60', marginHorizontal: 16, marginTop: 8, borderRadius: 8, padding: 12, alignItems: 'center' },
-  saveMessageText: { fontSize: 14, fontWeight: '600', color: '#FFF' },
-  
-  // LOGOUT
-  logoutBtn: { backgroundColor: '#FFF', marginHorizontal: 16, marginTop: 24, borderRadius: 16, padding: 16, alignItems: 'center', borderWidth: 1, borderColor: '#C0392B' },
-  logoutText: { fontSize: 16, fontWeight: '600', color: '#C0392B' },
-  
-  bottomSpacer: { height: 120 },
+   container: { flex: 1, backgroundColor: '#FFF9F1' },
+   scrollView: { flex: 1 },
+
+   // HEADER
+   header: {
+     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
+     backgroundColor: '#E87A5D', paddingTop: 50, paddingHorizontal: 16, paddingBottom: 16,
+   },
+   headerLogo: { fontSize: 28, fontWeight: '800', color: '#FFF' },
+   headerLogoAccent: { color: '#FFF' },
+   headerRightIcons: { flexDirection: 'row', gap: 12 },
+   headerIcon: { fontSize: 20 },
+
+   // PROFILE SECTION
+   profileSection: { alignItems: 'center', paddingVertical: 20, backgroundColor: '#FFF9F1' },
+   avatarContainer: { position: 'relative' },
+   avatar: { width: 100, height: 100, borderRadius: 50, backgroundColor: '#A0A0A0', alignItems: 'center', justifyContent: 'center' },
+   avatarIcon: { fontSize: 40, color: '#FFF' },
+   cameraBtn: { position: 'absolute', bottom: 0, right: 0, width: 32, height: 32, borderRadius: 16, backgroundColor: '#E87A5D', alignItems: 'center', justifyContent: 'center', borderWidth: 2, borderColor: '#FFF' },
+   cameraIcon: { fontSize: 14 },
+   userName: { fontSize: 22, fontWeight: '700', color: '#2E2A26', marginTop: 12 },
+
+   // INFO CARD
+   infoCard: { backgroundColor: '#FFF', marginHorizontal: 16, marginTop: 12, borderRadius: 16, padding: 16 },
+   cardTitleRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+   cardTitle: { fontSize: 16, fontWeight: '700', color: '#2E2A26' },
+   cardTitleIcon: { fontSize: 18 },
+   editBtn: { position: 'absolute', top: 16, right: 16 },
+   editIcon: { fontSize: 18 },
+
+   // INFO FIELDS
+   infoRow: { flexDirection: 'row', alignItems: 'center', gap: 12, marginTop: 16 },
+   infoIcon: { fontSize: 18, width: 24 },
+   infoContent: { flex: 1 },
+   infoLabel: { fontSize: 12, color: '#6B6660', marginBottom: 4 },
+   infoValue: { fontSize: 16, color: '#2E2A26', fontWeight: '500', borderBottomWidth: 1, borderBottomColor: '#EADBC8', paddingBottom: 4 },
+   infoValueDisabled: { fontSize: 16, color: '#2E2A26', fontWeight: '500' },
+
+   // SAVE MESSAGE
+   saveMessageContainer: { backgroundColor: '#27AE60', marginHorizontal: 16, marginTop: 8, borderRadius: 8, padding: 12, alignItems: 'center' },
+   saveMessageText: { fontSize: 14, fontWeight: '600', color: '#FFF' },
+
+   // LOGOUT
+   logoutBtn: { backgroundColor: '#FFF', marginHorizontal: 16, marginTop: 24, borderRadius: 16, padding: 16, alignItems: 'center', borderWidth: 1, borderColor: '#C0392B' },
+   logoutText: { fontSize: 16, fontWeight: '600', color: '#C0392B' },
+
+   bottomSpacer: { height: 120 },
 });

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, Image, Pressable, FlatList, TextInput, TouchableOpacity, Modal, ActivityIndicator, Alert } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, Image, Pressable, FlatList, TextInput, TouchableOpacity, Modal, ActivityIndicator, Alert, SafeAreaView } from 'react-native';
 import Icon from '../components/Icon';
 import { getSupabase } from '../lib/supabase';
 import { colors, radius, spacing } from '../theme/colors';
@@ -60,35 +60,35 @@ const BLOG_POSTS = [
 
 const TabBar = ({ currentTab, setCurrentTab }: { currentTab: string; setCurrentTab: (tab: any) => void }) => (
   <View style={styles.tabBar}>
-    <TouchableOpacity 
-      style={[styles.tabItem, currentTab === 'explore' && styles.tabItemActive]} 
+    <TouchableOpacity
+      style={[styles.tabItem, currentTab === 'explore' && styles.tabItemActive]}
       onPress={() => setCurrentTab('explore')}
       activeOpacity={0.7}
     >
       <Icon name="search" size={22} color={currentTab === 'explore' ? '#E87A5D' : '#6B6660'} />
       <Text style={[styles.tabLabel, currentTab === 'explore' && styles.tabLabelActive]}>Explorer</Text>
     </TouchableOpacity>
-    
-    <TouchableOpacity 
-      style={[styles.tabItem, currentTab === 'animals' && styles.tabItemActive]} 
+
+    <TouchableOpacity
+      style={[styles.tabItem, currentTab === 'animals' && styles.tabItemActive]}
       onPress={() => setCurrentTab('animals')}
       activeOpacity={0.7}
     >
       <Icon name="heart" size={22} color={currentTab === 'animals' ? '#E87A5D' : '#6B6660'} />
       <Text style={[styles.tabLabel, currentTab === 'animals' && styles.tabLabelActive]}>Mes Animaux</Text>
     </TouchableOpacity>
-    
-    <TouchableOpacity 
-      style={[styles.tabItem, currentTab === 'messages' && styles.tabItemActive]} 
+
+    <TouchableOpacity
+      style={[styles.tabItem, currentTab === 'messages' && styles.tabItemActive]}
       onPress={() => setCurrentTab('messages')}
       activeOpacity={0.7}
     >
       <Icon name="chatbubble" size={22} color={currentTab === 'messages' ? '#E87A5D' : '#6B6660'} />
       <Text style={[styles.tabLabel, currentTab === 'messages' && styles.tabLabelActive]}>Messages</Text>
     </TouchableOpacity>
-    
-    <TouchableOpacity 
-      style={[styles.tabItem, currentTab === 'profile' && styles.tabItemActive]} 
+
+    <TouchableOpacity
+      style={[styles.tabItem, currentTab === 'profile' && styles.tabItemActive]}
       onPress={() => setCurrentTab('profile')}
       activeOpacity={0.7}
     >
@@ -325,16 +325,18 @@ const loadUserName = async () => {
 
   if (currentTab === 'profile') {
     return (
-      <View style={styles.container}>
-        <ProfileScreen navigation={{ navigate: (screen: any) => setCurrentTab(screen) }} onNavigate={setCurrentTab} />
-        <TabBar currentTab={currentTab} setCurrentTab={setCurrentTab} />
-      </View>
+      <SafeAreaView style={{ flex: 1, backgroundColor: '#FFF9F1' }}>
+        <ScrollView contentContainerStyle={{ paddingBottom: 100 }} showsVerticalScrollIndicator={false}>
+          <ProfileScreen navigation={{ navigate: (screen: any) => setCurrentTab(screen) }} onNavigate={setCurrentTab} />
+        </ScrollView>
+      </SafeAreaView>
     );
   }
 
   if (currentTab === 'animals') {
     return (
-      <View style={styles.container}>
+      <SafeAreaView style={{ flex: 1, backgroundColor: '#FFF9F1' }}>
+        {/* HEADER */}
         <View style={styles.header}>
           <TouchableOpacity style={styles.headerIconBtn} onPress={() => setCurrentTab('profile')} activeOpacity={0.7}>
             <Icon name="person" size={20} color="#FFF" />
@@ -352,7 +354,9 @@ const loadUserName = async () => {
             </TouchableOpacity>
           </View>
         </View>
-        <View style={{ padding: 16, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+
+        {/* TITRE + BOUTON AJOUTER */}
+        <View style={{ paddingHorizontal: 16, paddingTop: 16, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
           <Text style={{ fontSize: 20, fontWeight: '700', color: '#2E2A26' }}>Mes Animaux</Text>
           <TouchableOpacity
             onPress={() => setAddAnimalModalVisible(true)}
@@ -362,13 +366,15 @@ const loadUserName = async () => {
             <Text style={{ color: '#FFF', fontWeight: '600' }}>+ Ajouter</Text>
           </TouchableOpacity>
         </View>
-        <View style={{ flex: 1, position: 'relative' }}>
+
+        {/* LISTE DES ANIMAUX (FlatList avec paddingBottom) */}
+        <View style={{ flex: 1 }}>
           {isLoadingPets && (
             <View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(255, 248, 241, 0.7)', zIndex: 10 }}>
               <ActivityIndicator size="large" color="#FF5722" />
             </View>
           )}
-           {(userPets || []).length === 0 ? (
+          {(userPets || []).length === 0 ? (
             <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: 20 }}>
               <View style={{ width: 100, height: 100, borderRadius: 50, backgroundColor: '#FFF5F0', alignItems: 'center', justifyContent: 'center' }}>
                 <Icon name="paw" size={50} color="#FF5722" />
@@ -388,7 +394,7 @@ const loadUserName = async () => {
             <FlatList
               data={userPets || []}
               keyExtractor={(item) => item.id}
-              contentContainerStyle={{ padding: 16 }}
+              contentContainerStyle={{ padding: 16, paddingBottom: 100 }}
               renderItem={({ item }) => (
                 <TouchableOpacity
                   onPress={() => {
@@ -415,8 +421,10 @@ const loadUserName = async () => {
             />
           )}
         </View>
+
         <TabBar currentTab={currentTab} setCurrentTab={setCurrentTab} />
 
+        {/* MODAL AJOUT ANIMAL */}
         <Modal
           visible={isAddAnimalModalVisible}
           animationType="slide"
@@ -692,13 +700,13 @@ const loadUserName = async () => {
             </View>
           )}
         </Modal>
-      </View>
+      </SafeAreaView>
     );
   }
 
   if (currentTab === 'petProfile' && currentAnimal) {
     return (
-      <View style={styles.container}>
+      <SafeAreaView style={{ flex: 1, backgroundColor: '#FFF9F1' }}>
         <PetProfileScreen
           animalData={currentAnimal}
           onNavigate={setCurrentTab}
@@ -718,43 +726,51 @@ const loadUserName = async () => {
           }}
         />
         <TabBar currentTab="animals" setCurrentTab={setCurrentTab} />
-      </View>
+      </SafeAreaView>
     );
   }
 
   if (currentTab === 'messages') {
     return (
-      <View style={styles.container}>
-        <View style={styles.header}>
-          <TouchableOpacity style={styles.headerIconBtn} onPress={() => setCurrentTab('profile')} activeOpacity={0.7}>
-            <Icon name="person" size={20} color="#FFF" />
-          </TouchableOpacity>
-          <Text style={styles.headerLogo}>gali<Text style={styles.headerLogoAccent}>'</Text>pet</Text>
-          <View style={styles.headerRightIcons}>
-            <TouchableOpacity onPress={() => handleHeaderIconPress('messages')} activeOpacity={0.7}>
-              <Icon name="chatbubble-ellipses" size={22} color="#FFF" />
+      <SafeAreaView style={{ flex: 1, backgroundColor: '#FFF9F1' }}>
+        <ScrollView contentContainerStyle={{ flexGrow: 1, paddingBottom: 80 }} showsVerticalScrollIndicator={false}>
+          {/* HEADER */}
+          <View style={styles.header}>
+            <TouchableOpacity style={styles.headerIconBtn} onPress={() => setCurrentTab('profile')} activeOpacity={0.7}>
+              <Icon name="person" size={20} color="#FFF" />
             </TouchableOpacity>
-            <TouchableOpacity onPress={() => console.log('calendar')} activeOpacity={0.7}>
-              <Icon name="calendar" size={22} color="#FFF" />
-            </TouchableOpacity>
-            <TouchableOpacity onPress={() => console.log('notifications')} activeOpacity={0.7}>
-              <Icon name="notifications" size={22} color="#FFF" />
-            </TouchableOpacity>
+            <Text style={styles.headerLogo}>gali<Text style={styles.headerLogoAccent}>'</Text>pet</Text>
+            <View style={styles.headerRightIcons}>
+              <TouchableOpacity onPress={() => handleHeaderIconPress('messages')} activeOpacity={0.7}>
+                <Icon name="chatbubble-ellipses" size={22} color="#FFF" />
+              </TouchableOpacity>
+              <TouchableOpacity onPress={() => console.log('calendar')} activeOpacity={0.7}>
+                <Icon name="calendar" size={22} color="#FFF" />
+              </TouchableOpacity>
+              <TouchableOpacity onPress={() => console.log('notifications')} activeOpacity={0.7}>
+                <Icon name="notifications" size={22} color="#FFF" />
+              </TouchableOpacity>
+            </View>
           </View>
-        </View>
-        <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
-          <Icon name="chatbubble-ellipses-outline" size={48} color="#6B6660" />
-          <Text style={{ fontSize: 18, fontWeight: '600', color: '#2E2A26', marginTop: 12 }}>Messages</Text>
-          <Text style={{ fontSize: 14, color: '#6B6660', marginTop: 8 }}>Vos conversations</Text>
-        </View>
+
+          {/* CONTENU CENTRÉ */}
+          <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', minHeight: 300 }}>
+            <Icon name="chatbubble-ellipses-outline" size={48} color="#6B6660" />
+            <Text style={{ fontSize: 18, fontWeight: '600', color: '#2E2A26', marginTop: 12 }}>Messages</Text>
+            <Text style={{ fontSize: 14, color: '#6B6660', marginTop: 8 }}>Vos conversations</Text>
+          </View>
+        </ScrollView>
         <TabBar currentTab={currentTab} setCurrentTab={setCurrentTab} />
-      </View>
+      </SafeAreaView>
     );
   }
 
   return (
-    <View style={styles.container}>
-      <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: '#FFF9F1' }}>
+      <ScrollView
+        contentContainerStyle={{ paddingBottom: 80 }}
+        showsVerticalScrollIndicator={false}
+      >
         {/* HEADER */}
         <View style={styles.header}>
           <TouchableOpacity style={styles.headerIconBtn} onPress={() => setCurrentTab('profile')} activeOpacity={0.7}>
@@ -852,13 +868,11 @@ const loadUserName = async () => {
           showsHorizontalScrollIndicator={false}
           contentContainerStyle={styles.horizontalList}
         />
-
-        <View style={styles.bottomSpacer} />
       </ScrollView>
 
       {/* BOTTOM TAB BAR */}
       <TabBar currentTab={currentTab} setCurrentTab={setCurrentTab} />
-    </View>
+    </SafeAreaView>
   );
 }
 
@@ -943,25 +957,25 @@ const styles = StyleSheet.create({
   blogBadge: { position: 'absolute', top: 8, left: 8, backgroundColor: '#7BA988', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 8 },
   blogBadgeText: { fontSize: 10, color: '#FFF', fontWeight: '600' },
   blogTitle: { fontSize: 14, fontWeight: '600', color: '#2E2A26', marginTop: 8 },
-  blogMeta: { fontSize: 11, color: '#6B6660', marginTop: 4 },
-  
-  bottomSpacer: { height: 100 },
-  
-  // TAB BAR
-  tabBar: {
-    position: 'absolute', bottom: 0, left: 0, right: 0,
-    flexDirection: 'row', backgroundColor: '#FFF', paddingBottom: 30, paddingTop: 10,
-    borderTopWidth: 1, borderTopColor: '#EADBC8',
-    alignItems: 'center', justifyContent: 'space-evenly',
-    shadowColor: '#000', shadowOffset: { width: 0, height: -2 }, shadowOpacity: 0.1, shadowRadius: 4, elevation: 8,
-    zIndex: 1000,
+   blogMeta: { fontSize: 11, color: '#6B6660', marginTop: 4 },
+
+   // TAB BAR - FIXED POSITION (sans absolute, React Navigation gère la position)
+   tabBar: {
+    height: 60,
+    backgroundColor: '#FFF9F1',
+    borderTopWidth: 1,
+    borderTopColor: '#EEE',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-evenly',
+    // Pas de position: 'absolute' - React Navigation gère la position naturelle
   },
-  tabItem: { alignItems: 'center', paddingVertical: 8, paddingHorizontal: 16, borderRadius: 12 },
-  tabItemActive: { backgroundColor: '#FFF5F0' },
-  tabIcon: { fontSize: 22, color: '#6B6660' },
-  tabIconActive: { fontSize: 22, color: '#E87A5D' },
-  tabLabel: { fontSize: 10, color: '#6B6660', marginTop: 4, textAlign: 'center' },
-  tabLabelActive: { color: '#E87A5D', fontWeight: '600' },
+   tabItem: { alignItems: 'center', paddingVertical: 6, paddingHorizontal: 12, borderRadius: 12, flex: 1 },
+   tabItemActive: { backgroundColor: '#FFF5F0' },
+   tabIcon: { fontSize: 22, color: '#6B6660' },
+   tabIconActive: { fontSize: 22, color: '#E87A5D' },
+   tabLabel: { fontSize: 10, color: '#6B6660', marginTop: 4, textAlign: 'center' },
+   tabLabelActive: { color: '#E87A5D', fontWeight: '600' },
   tabLogo: { alignItems: 'center', justifyContent: 'center' },
   tabLogoCircle: {
     width: 50, height: 50, borderRadius: 25, backgroundColor: '#E87A5D',
