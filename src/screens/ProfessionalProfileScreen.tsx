@@ -122,6 +122,15 @@ export default function ProfessionalProfileScreen({ onNavigate }: any) {
   
   const [isSaving, setIsSaving] = useState(false);
 
+  // Show loading while profile is loading or no session
+  if (!session || isProfileLoading) {
+    return (
+      <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.background }}>
+        <ActivityIndicator size="large" color={colors.primary} />
+      </View>
+    );
+  }
+
   // Load data when profile loads
   useEffect(() => {
     if (profileData) {

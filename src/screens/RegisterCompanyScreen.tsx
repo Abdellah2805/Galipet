@@ -33,6 +33,7 @@ export default function RegisterCompanyScreen() {
 
       const { error: cErr } = await supabase.from('company_profiles').insert({
         id: userId, company_name, contact_name, siret_or_id,
+        specialization: '', bio: '', cover_image: '', working_hours: [], role: 'Éleveur',
       });
       if (cErr) { setLoading(false); return Alert.alert('Profil entreprise', cErr.message); }
     }
@@ -47,14 +48,14 @@ export default function RegisterCompanyScreen() {
       <Text style={styles.subtitle}>Présentez votre activité.</Text>
 
       <View style={{ marginTop: spacing.lg }}>
-        <TextField label="Nom de l'entreprise" value={form.company_name} onChangeText={set('company_name')} placeholder="Galipet Pro SARL" />
-        <TextField label="Nom du contact" value={form.contact_name} onChangeText={set('contact_name')} placeholder="Jean Martin" />
-        <TextField label="SIRET / Identifiant" value={form.siret_or_id} onChangeText={set('siret_or_id')} placeholder="123 456 789 00012" />
-        <TextField label="Email pro" value={form.email} onChangeText={set('email')} autoCapitalize="none" keyboardType="email-address" placeholder="contact@entreprise.com" />
-        <TextField label="Téléphone" value={form.phone} onChangeText={set('phone')} keyboardType="phone-pad" placeholder="01 ..." />
-        <TextField label="Mot de passe" value={form.password} onChangeText={set('password')} secureTextEntry placeholder="Min. 6 caractères" />
+        <TextField label="Nom de l'entreprise" value={form.company_name} onChangeText={set('company_name')} placeholder="Galipet Pro SARL" error="" style={{}} />
+        <TextField label="Nom du contact" value={form.contact_name} onChangeText={set('contact_name')} placeholder="Jean Martin" error="" style={{}} />
+        <TextField label="SIRET / Identifiant" value={form.siret_or_id} onChangeText={set('siret_or_id')} placeholder="123 456 789 00012" error="" style={{}} />
+        <TextField label="Email pro" value={form.email} onChangeText={set('email')} autoCapitalize="none" keyboardType="email-address" placeholder="contact@entreprise.com" error="" style={{}} />
+        <TextField label="Téléphone" value={form.phone} onChangeText={set('phone')} keyboardType="phone-pad" placeholder="01 ..." error="" style={{}} />
+        <TextField label="Mot de passe" value={form.password} onChangeText={set('password')} secureTextEntry placeholder="Min. 6 caractères" error="" style={{}} />
 
-        <PrimaryButton title="Créer mon compte pro" onPress={handleSignup} loading={loading} />
+        <PrimaryButton title="Créer mon compte pro" onPress={handleSignup} loading={loading} disabled={false} style={{}} />
       </View>
     </ScreenContainer>
   );
