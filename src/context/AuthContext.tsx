@@ -50,10 +50,6 @@ export function AuthProvider({ children }) {
       } else {
         setUserRole(null);
       }
-        setUserRole(profile?.role || null);
-      } else {
-        setUserRole(null);
-      }
     });
 
     supabase.auth.getSession().then(async ({ data, error }) => {
@@ -77,8 +73,6 @@ export function AuthProvider({ children }) {
         if (profileError) {
           console.warn('AuthContext profile fetch error:', profileError);
         }
-        setUserRole(profile?.role || null);
-      }
         setUserRole(profile?.role || null);
       }
       clearTimeout(timeoutId);
