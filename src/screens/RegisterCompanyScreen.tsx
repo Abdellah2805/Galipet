@@ -61,7 +61,9 @@ export default function RegisterCompanyScreen() {
     }
 
     setLoading(false);
-    Alert.alert('Compte créé', 'Vous pouvez maintenant vous connecter.');
+    Alert.alert('Compte créé', 'Vous pouvez maintenant vous connecter.', [
+      { text: 'OK', onPress: () => { if (typeof window !== 'undefined') window.location.reload(); } }
+    ]);
   };
 
   return (

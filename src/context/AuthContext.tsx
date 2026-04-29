@@ -38,11 +38,18 @@ export function AuthProvider({ children }) {
       setSession(s);
 
       if (s?.user) {
-        const { data: profile } = await supabase
+        const { data: profile, error: profileError } = await supabase
           .from('profiles')
           .select('role')
           .eq('id', s.user.id)
-          .single();
+          .maybeSingle();
+        if (profileError) {
+          console.warn('AuthContext profile fetch error:', profileError);
+        }
+        setUserRole(profile?.role || null);
+      } else {
+        setUserRole(null);
+      }
         setUserRole(profile?.role || null);
       } else {
         setUserRole(null);
@@ -62,11 +69,16 @@ export function AuthProvider({ children }) {
       
       setSession(data?.session || null);
       if (data?.session?.user) {
-        const { data: profile } = await supabase
+        const { data: profile, error: profileError } = await supabase
           .from('profiles')
           .select('role')
           .eq('id', data.session.user.id)
-          .single();
+          .maybeSingle();
+        if (profileError) {
+          console.warn('AuthContext profile fetch error:', profileError);
+        }
+        setUserRole(profile?.role || null);
+      }
         setUserRole(profile?.role || null);
       }
       clearTimeout(timeoutId);
