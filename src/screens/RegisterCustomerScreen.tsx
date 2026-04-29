@@ -11,6 +11,20 @@ export default function RegisterCustomerScreen() {
   const [loading, setLoading] = useState(false);
   const set = (k) => (v) => setForm((f) => ({ ...f, [k]: v }));
 
+  const getAuthErrorMessage = (message: string): string => {
+    if (message.includes('already registered')) return 'Un compte existe déjà avec cet email. Connectez-vous ou utilisez un autre email.';
+    if (message.includes('password') && message.includes('6')) return 'Le mot de passe doit contenir au moins 6 caractères.';
+    if (message.includes('format') || message.includes('valid')) return 'Format d\'email invalide.';
+    return message || 'Une erreur est survenue lors de l\'inscription.';
+  };
+
+  const getAuthErrorMessage = (message: string): string => {
+    if (message.includes('already registered')) return 'Un compte existe déjà avec cet email. Connectez-vous ou utilisez un autre email.';
+    if (message.includes('password') && message.includes('6')) return 'Le mot de passe doit contenir au moins 6 caractères.';
+    if (message.includes('format') || message.includes('valid')) return 'Format d\'email invalide.';
+    return message || 'Une erreur est survenue lors de l\'inscription.';
+  };
+
   const handleSignup = async () => {
     const { email, password, full_name, phone, birth_date, address } = form;
     if (!email || !password || !full_name) {
@@ -26,7 +40,7 @@ export default function RegisterCustomerScreen() {
     if (error) {
       console.error('Supabase auth.signUp error:', error);
       setLoading(false);
-      return Alert.alert('Erreur', error.message || 'Une erreur est survenue lors de l\'inscription.');
+      return Alert.alert('Erreur', getAuthErrorMessage(error.message));
     }
 
     const userId = data.user?.id;

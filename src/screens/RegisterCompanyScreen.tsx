@@ -13,6 +13,13 @@ export default function RegisterCompanyScreen() {
   const [loading, setLoading] = useState(false);
   const set = (k) => (v) => setForm((f) => ({ ...f, [k]: v }));
 
+  const getAuthErrorMessage = (message: string): string => {
+    if (message.includes('already registered')) return 'Un compte existe déjà avec cet email. Connectez-vous ou utilisez un autre email.';
+    if (message.includes('password') && message.includes('6')) return 'Le mot de passe doit contenir au moins 6 caractères.';
+    if (message.includes('format') || message.includes('valid')) return 'Format d\'email invalide.';
+    return message || 'Une erreur est survenue lors de l\'inscription.';
+  };
+
   const handleSignup = async () => {
     const { email, password, company_name, contact_name, siret_or_id, phone } = form;
     if (!email || !password || !company_name || !contact_name || !siret_or_id) {
@@ -28,13 +35,13 @@ export default function RegisterCompanyScreen() {
     if (error) {
       console.error('Supabase auth.signUp error:', error);
       setLoading(false);
-      return Alert.alert('Erreur', error.message || 'Une erreur est survenue lors de l\'inscription.');
+      return Alert.alert('Erreur', getAuthErrorMessage(error.message));
     }
 
     const userId = data.user?.id;
     if (userId) {
       const { error: pErr } = await supabase.from('profiles').insert({
-        id: userId, email, role: 'professional', phone,
+        id: userId, email, role: 'company', phone,
       });
       if (pErr) {
         console.error('Supabase profiles.insert error:', pErr);
