@@ -18,24 +18,39 @@ export default function RegisterCompanyScreen() {
     if (!email || !password || !company_name || !contact_name || !siret_or_id) {
       return Alert.alert('Champs requis', 'Tous les champs entreprise sont obligatoires.');
     }
+    if (password.length < 6) {
+      return Alert.alert('Mot de passe trop court', 'Le mot de passe doit contenir au moins 6 caractères.');
+    }
     setLoading(true);
 
     const supabase = getSupabase();
     const { data, error } = await supabase.auth.signUp({ email, password });
-    if (error) { setLoading(false); return Alert.alert('Erreur', error.message); }
+    if (error) {
+      console.error('Supabase auth.signUp error:', error);
+      setLoading(false);
+      return Alert.alert('Erreur', error.message || 'Une erreur est survenue lors de l\'inscription.');
+    }
 
     const userId = data.user?.id;
     if (userId) {
       const { error: pErr } = await supabase.from('profiles').insert({
         id: userId, email, role: 'professional', phone,
       });
-      if (pErr) { setLoading(false); return Alert.alert('Profil', pErr.message); }
+      if (pErr) {
+        console.error('Supabase profiles.insert error:', pErr);
+        setLoading(false);
+        return Alert.alert('Profil', pErr.message);
+      }
 
       const { error: cErr } = await supabase.from('company_profiles').insert({
         id: userId, company_name, contact_name, siret_or_id,
         specialization: '', bio: '', cover_image: '', working_hours: [], role: 'Éleveur',
       });
-      if (cErr) { setLoading(false); return Alert.alert('Profil entreprise', cErr.message); }
+      if (cErr) {
+        console.error('Supabase company_profiles.insert error:', cErr);
+        setLoading(false);
+        return Alert.alert('Profil entreprise', cErr.message);
+      }
     }
 
     setLoading(false);

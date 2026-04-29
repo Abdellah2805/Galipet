@@ -16,23 +16,38 @@ export default function RegisterCustomerScreen() {
     if (!email || !password || !full_name) {
       return Alert.alert('Champs requis', 'Email, mot de passe et nom complet.');
     }
+    if (password.length < 6) {
+      return Alert.alert('Mot de passe trop court', 'Le mot de passe doit contenir au moins 6 caractères.');
+    }
     setLoading(true);
 
     const supabase = getSupabase();
     const { data, error } = await supabase.auth.signUp({ email, password });
-    if (error) { setLoading(false); return Alert.alert('Erreur', error.message); }
+    if (error) {
+      console.error('Supabase auth.signUp error:', error);
+      setLoading(false);
+      return Alert.alert('Erreur', error.message || 'Une erreur est survenue lors de l\'inscription.');
+    }
 
     const userId = data.user?.id;
     if (userId) {
       const { error: pErr } = await supabase.from('profiles').insert({
-        id: userId, email, role: 'customer', phone, birth_date, address,
+        id: userId, email, role: 'customer', phone, birth_date: birth_date || null, address,
       });
-      if (pErr) { setLoading(false); return Alert.alert('Profil', pErr.message); }
+      if (pErr) {
+        console.error('Supabase profiles.insert error:', pErr);
+        setLoading(false);
+        return Alert.alert('Profil', pErr.message);
+      }
 
       const { error: cErr } = await supabase.from('customer_profiles').insert({
         id: userId, full_name,
       });
-      if (cErr) { setLoading(false); return Alert.alert('Profil client', cErr.message); }
+      if (cErr) {
+        console.error('Supabase customer_profiles.insert error:', cErr);
+        setLoading(false);
+        return Alert.alert('Profil client', cErr.message);
+      }
     }
 
     setLoading(false);
@@ -48,7 +63,7 @@ export default function RegisterCustomerScreen() {
         <TextField label="Nom complet" value={form.full_name} onChangeText={set('full_name')} placeholder="Marie Dupont" error="" style={{}} />
         <TextField label="Email" value={form.email} onChangeText={set('email')} autoCapitalize="none" keyboardType="email-address" placeholder="vous@email.com" error="" style={{}} />
         <TextField label="Téléphone" value={form.phone} onChangeText={set('phone')} keyboardType="phone-pad" placeholder="06 ..." error="" style={{}} />
-        <TextField label="Date de naissance" value={form.birth_date} onChangeText={set('birth_date')} placeholder="10 mars 1988" error="" style={{}} />
+        <TextField label="Date de naissance" value={form.birth_date} onChangeText={set('birth_date')} placeholder="YYYY-MM-DD" error="" style={{}} />
         <TextField label="Adresse" value={form.address} onChangeText={set('address')} placeholder="Votre adresse" error="" style={{}} />
         <TextField label="Mot de passe" value={form.password} onChangeText={set('password')} secureTextEntry placeholder="Min. 6 caractères" error="" style={{}} />
 
