@@ -9,7 +9,7 @@ propriétaire :
 moi1@gmail.com 
 mdp : 123456
 
-note: il est possible de s inscrire sauf pour professionnels (en maintenance)
+note: l inscription marche
 
 ## 📋 Concept du Projet
 
